@@ -12,5 +12,8 @@
 
 - `dist/index.html`：看板页面
 - `dist/tracker.json`：每日跟踪数据
+- `dist/klines.json`：观察候选近120个交易日的前复权日K数据
+- `dist/update-status.json`：盘后流水线校验状态与生成时间
 
-页面使用相对路径读取 `tracker.json`，可同时部署在 GitHub Pages 的项目子路径下。
+页面使用相对路径读取 `tracker.json` 和 `klines.json`，点击股票后可查看30/60/120日K线，可同时部署在 GitHub Pages 的项目子路径下。
+
