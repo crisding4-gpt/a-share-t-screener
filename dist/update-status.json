@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "status": "validated",
+  "asof": "2026-09-14",
+  "previous_asof": "2026-09-11",
+  "generated_at": "2026-09-14T16:52:28+08:00",
+  "checks": {
+    "official_trading_calendar": true,
+    "tencent_close_date": true,
+    "phase1_scan": true,
+    "phase2_validation": true,
+    "phase3_transition": true,
+    "tracker_schema": true
+  },
+  "note": "仅在官方交易日且收盘行情日期一致时更新。"
+}
