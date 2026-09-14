@@ -104,8 +104,6 @@
     .score { font-variant-numeric: tabular-nums; font-weight: 700; }
     .reason { max-width: 330px; color: #b6c6d8; }
     .empty { display: none; padding: 40px; text-align: center; color: var(--muted); }
-    .rules { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; color: var(--muted); font-size: .77rem; }
-    .rules span { padding: 7px 10px; border-radius: 8px; background: rgba(13,25,40,.68); border: 1px solid var(--line); }
     dialog { width: min(920px, calc(100% - 30px)); border: 1px solid #315171; border-radius: 16px; padding: 0; color: var(--text); background: #0b1725; box-shadow: 0 24px 80px rgba(0,0,0,.55); }
     dialog::backdrop { background: rgba(2,8,15,.72); backdrop-filter: blur(4px); }
     .dialog-head { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--line); }
@@ -129,7 +127,6 @@
     #kline-canvas { display: block; width: 100%; height: 340px; }
     .chart-message { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: .82rem; pointer-events: none; }
     .chart-tooltip { position: absolute; display: none; z-index: 2; max-width: calc(100% - 16px); padding: 7px 9px; border: 1px solid #315171; border-radius: 7px; background: rgba(7,16,28,.94); color: #dce9f7; font-size: .72rem; line-height: 1.5; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,.28); white-space: nowrap; }
-    footer { margin-top: 18px; color: var(--muted); font-size: .74rem; display: flex; justify-content: space-between; gap: 15px; }
     @media (max-width: 920px) {
       .top-grid { grid-template-columns: 1fr; }
       .toolbar { align-items: stretch; flex-direction: column; }
@@ -148,7 +145,6 @@
       .chart-head { align-items: flex-start; flex-direction: column; }
       .chart-frame { min-height: 280px; }
       #kline-canvas { height: 280px; }
-      footer { flex-direction: column; }
     }
   </style>
 </head>
@@ -210,10 +206,6 @@
       <div class="empty" id="empty">没有符合当前筛选条件的记录</div>
     </section>
 
-    <div class="rules" aria-label="当前核心规则">
-      <span>相似度 ≥ 70</span><span>120日回撤 20%—60%</span><span>距20日高点 ≥ 5日才算成熟</span><span>市场与公告仍需复核</span>
-    </div>
-    <footer><span>状态迁移用于每日复核，不构成买卖指令。</span><span id="compare-date">对比日期载入中</span></footer>
   </main>
 
   <dialog id="detail-dialog">
@@ -426,7 +418,6 @@
         const updateState = document.querySelector('#update-state');
         updateState.textContent = validated ? `自动更新已校验 · ${state.updateStatus.generated_at || ''}` : '历史数据 · 自动校验状态不可用';
         updateState.style.color = validated ? 'var(--green)' : 'var(--amber)';
-        document.querySelector('#compare-date').textContent = `对比 ${state.data.previous_asof || '—'} → ${state.data.asof || '—'}`;
         document.querySelector('#visible-count').textContent = state.data.current_visible ?? 0;
         document.querySelector('#new-count').textContent = summary['新进入观察'] || 0;
         document.querySelector('#wait-count').textContent = summary['继续等待回踩'] || 0;
