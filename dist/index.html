@@ -103,7 +103,7 @@
     .empty { display: none; padding: 40px; text-align: center; color: var(--muted); }
     .rules { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; color: var(--muted); font-size: .77rem; }
     .rules span { padding: 7px 10px; border-radius: 8px; background: rgba(13,25,40,.68); border: 1px solid var(--line); }
-    dialog { width: min(560px, calc(100% - 30px)); border: 1px solid #315171; border-radius: 16px; padding: 0; color: var(--text); background: #0b1725; box-shadow: 0 24px 80px rgba(0,0,0,.55); }
+    dialog { width: min(920px, calc(100% - 30px)); border: 1px solid #315171; border-radius: 16px; padding: 0; color: var(--text); background: #0b1725; box-shadow: 0 24px 80px rgba(0,0,0,.55); }
     dialog::backdrop { background: rgba(2,8,15,.72); backdrop-filter: blur(4px); }
     .dialog-head { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--line); }
     .dialog-head h3 { margin: 0; }
@@ -114,6 +114,18 @@
     .detail span { display: block; color: var(--muted); font-size: .74rem; }
     .detail strong { margin-top: 3px; display: block; }
     .dialog-reason { margin: 15px 0 0; color: #c6d4e4; }
+    .chart-block { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .chart-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .chart-title { display: flex; align-items: baseline; gap: 9px; }
+    .chart-title strong { font-size: .92rem; }
+    .chart-title span { color: var(--muted); font-size: .72rem; }
+    .periods { display: flex; gap: 6px; }
+    .period { cursor: pointer; padding: 4px 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel-2); color: var(--muted); font-size: .72rem; }
+    .period.active, .period:hover { color: var(--text); border-color: #4775a1; background: #14273c; }
+    .chart-frame { position: relative; min-height: 340px; border: 1px solid rgba(32,52,76,.8); border-radius: 10px; overflow: hidden; background: #081421; }
+    #kline-canvas { display: block; width: 100%; height: 340px; }
+    .chart-message { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: .82rem; pointer-events: none; }
+    .chart-tooltip { position: absolute; display: none; z-index: 2; max-width: calc(100% - 16px); padding: 7px 9px; border: 1px solid #315171; border-radius: 7px; background: rgba(7,16,28,.94); color: #dce9f7; font-size: .72rem; line-height: 1.5; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,.28); white-space: nowrap; }
     footer { margin-top: 18px; color: var(--muted); font-size: .74rem; display: flex; justify-content: space-between; gap: 15px; }
     @media (max-width: 920px) {
       .top-grid { grid-template-columns: 1fr; }
@@ -130,6 +142,9 @@
       .metrics { grid-template-columns: repeat(2, 1fr); }
       .kpi { min-height: 104px; padding: 15px; }
       .detail-grid { grid-template-columns: 1fr; }
+      .chart-head { align-items: flex-start; flex-direction: column; }
+      .chart-frame { min-height: 280px; }
+      #kline-canvas { height: 280px; }
       footer { flex-direction: column; }
     }
   </style>
@@ -200,11 +215,22 @@
 
   <dialog id="detail-dialog">
     <div class="dialog-head"><h3 id="dialog-title">股票详情</h3><button class="close" id="close-dialog" aria-label="关闭">×</button></div>
-    <div class="dialog-body"><div class="detail-grid" id="detail-grid"></div><p class="dialog-reason" id="dialog-reason"></p></div>
+    <div class="dialog-body">
+      <div class="detail-grid" id="detail-grid"></div><p class="dialog-reason" id="dialog-reason"></p>
+      <section class="chart-block" aria-label="日K线图">
+        <div class="chart-head">
+          <div class="chart-title"><strong>前复权日K</strong><span id="chart-source">点击股票后载入</span></div>
+          <div class="periods" role="group" aria-label="K线周期">
+            <button class="period" data-period="30">30日</button><button class="period active" data-period="60">60日</button><button class="period" data-period="120">120日</button>
+          </div>
+        </div>
+        <div class="chart-frame"><canvas id="kline-canvas"></canvas><div class="chart-message" id="chart-message">K线载入中</div><div class="chart-tooltip" id="chart-tooltip"></div></div>
+      </section>
+    </div>
   </dialog>
 
   <script>
-    const state = { data: null, updateStatus: null, filter: 'all', query: '' };
+    const state = { data: null, updateStatus: null, klines: null, klinePromise: null, chart: null, filter: 'all', query: '' };
     const fmt = (value, suffix = '') => Number.isFinite(value) ? `${value.toFixed(2)}${suffix}` : '—';
     const eventClass = (event) => event === '新进入观察' ? 'new' : event === '继续等待回踩' ? 'wait' : event === '结构或规则失效' ? 'fail' : '';
 
@@ -236,6 +262,103 @@
       });
     }
 
+    async function loadKlines() {
+      if (state.klines) return state.klines;
+      if (!state.klinePromise) {
+        state.klinePromise = fetch('./klines.json', { cache: 'no-store' }).then(response => {
+          if (!response.ok) throw new Error('K线数据文件载入失败');
+          return response.json();
+        }).then(data => (state.klines = data));
+      }
+      return state.klinePromise;
+    }
+
+    function drawKline(highlight = null) {
+      const chart = state.chart;
+      if (!chart?.rows?.length) return;
+      const canvas = document.querySelector('#kline-canvas');
+      const rect = canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      const width = rect.width, height = rect.height;
+      const pad = { left: 10, right: 52, top: 18, bottom: 24 };
+      const volumeTop = Math.round(height * .76);
+      const priceBottom = volumeTop - 14;
+      const plotWidth = width - pad.left - pad.right;
+      const rows = chart.rows;
+      const high = Math.max(...rows.map(row => Number(row[3])));
+      const low = Math.min(...rows.map(row => Number(row[4])));
+      const priceRange = Math.max(high - low, high * .01, .01);
+      const maxVolume = Math.max(...rows.map(row => Number(row[5])), 1);
+      const step = plotWidth / rows.length;
+      const candleWidth = Math.max(2, Math.min(9, step * .62));
+      const xAt = index => pad.left + step * (index + .5);
+      const yAt = price => pad.top + (high - price) / priceRange * (priceBottom - pad.top);
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.font = '11px Microsoft YaHei, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      for (let i = 0; i <= 4; i++) {
+        const y = pad.top + (priceBottom - pad.top) * i / 4;
+        const price = high - priceRange * i / 4;
+        ctx.strokeStyle = 'rgba(49,81,113,.38)';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(width - pad.right, y); ctx.stroke();
+        ctx.fillStyle = '#91a5bd';
+        ctx.fillText(price.toFixed(2), width - pad.right + 6, y);
+      }
+      rows.forEach((row, index) => {
+        const open = Number(row[1]), close = Number(row[2]), barHigh = Number(row[3]), barLow = Number(row[4]), volume = Number(row[5]);
+        const up = close >= open;
+        const color = up ? '#ff6b73' : '#38d39f';
+        const x = xAt(index), yOpen = yAt(open), yClose = yAt(close);
+        ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(x, yAt(barHigh)); ctx.lineTo(x, yAt(barLow)); ctx.stroke();
+        const bodyTop = Math.min(yOpen, yClose), bodyHeight = Math.max(1, Math.abs(yClose - yOpen));
+        ctx.fillRect(x - candleWidth / 2, bodyTop, candleWidth, bodyHeight);
+        const volumeHeight = (height - pad.bottom - volumeTop) * volume / maxVolume;
+        ctx.globalAlpha = .55;
+        ctx.fillRect(x - candleWidth / 2, height - pad.bottom - volumeHeight, candleWidth, volumeHeight);
+        ctx.globalAlpha = 1;
+      });
+      ctx.fillStyle = '#91a5bd'; ctx.textBaseline = 'bottom';
+      [[0, 'left'], [Math.floor((rows.length - 1) / 2), 'center'], [rows.length - 1, 'right']].forEach(([index, align]) => {
+        ctx.textAlign = align;
+        ctx.fillText(String(rows[index][0]).slice(5), xAt(index), height - 4);
+      });
+      if (Number.isInteger(highlight) && rows[highlight]) {
+        const x = xAt(highlight);
+        ctx.strokeStyle = 'rgba(237,245,255,.45)'; ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, height - pad.bottom); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      canvas._chartGeometry = { left: pad.left, step, count: rows.length };
+    }
+
+    async function renderKline(item, period = 60) {
+      const message = document.querySelector('#chart-message');
+      const tooltip = document.querySelector('#chart-tooltip');
+      message.style.display = 'grid'; message.textContent = 'K线载入中'; tooltip.style.display = 'none';
+      document.querySelectorAll('.period').forEach(button => button.classList.toggle('active', Number(button.dataset.period) === period));
+      try {
+        const bundle = await loadKlines();
+        const record = bundle.symbols?.[item.symbol];
+        if (!record?.rows?.length) throw new Error('该股票暂时没有可用K线');
+        state.chart = { item, period, rows: record.rows.slice(-period) };
+        document.querySelector('#chart-source').textContent = `${bundle.source || '前复权日K'} · 截至${bundle.asof || '—'}`;
+        message.style.display = 'none';
+        drawKline();
+      } catch (error) {
+        state.chart = null;
+        message.textContent = error.message || 'K线载入失败';
+      }
+    }
+
     function showDetail(item) {
       document.querySelector('#dialog-title').textContent = `${item.name} · ${item.code}`;
       const details = [
@@ -247,6 +370,7 @@
       document.querySelector('#detail-grid').innerHTML = details.map(([label, value]) => `<div class="detail"><span>${label}</span><strong>${value}</strong></div>`).join('');
       document.querySelector('#dialog-reason').textContent = item.reasons || '当前没有补充原因。';
       document.querySelector('#detail-dialog').showModal();
+      renderKline(item, 60);
     }
 
     function renderFocus() {
@@ -320,6 +444,23 @@
     }));
     document.querySelector('#search').addEventListener('input', event => { state.query = event.target.value.trim().toLowerCase(); render(); });
     document.querySelector('#close-dialog').addEventListener('click', () => document.querySelector('#detail-dialog').close());
+    document.querySelectorAll('.period').forEach(button => button.addEventListener('click', () => {
+      if (state.chart?.item) renderKline(state.chart.item, Number(button.dataset.period));
+    }));
+    document.querySelector('#kline-canvas').addEventListener('mousemove', event => {
+      const canvas = event.currentTarget, geometry = canvas._chartGeometry;
+      if (!geometry || !state.chart?.rows?.length) return;
+      const index = Math.max(0, Math.min(geometry.count - 1, Math.floor((event.offsetX - geometry.left) / geometry.step)));
+      const row = state.chart.rows[index];
+      drawKline(index);
+      const tip = document.querySelector('#chart-tooltip');
+      tip.textContent = `${row[0]}  开${Number(row[1]).toFixed(2)}  收${Number(row[2]).toFixed(2)}  高${Number(row[3]).toFixed(2)}  低${Number(row[4]).toFixed(2)}  量${Math.round(Number(row[5])).toLocaleString()}手`;
+      tip.style.display = 'block';
+      tip.style.left = `${Math.max(8, Math.min(event.offsetX + 12, canvas.clientWidth - tip.offsetWidth - 8))}px`;
+      tip.style.top = '8px';
+    });
+    document.querySelector('#kline-canvas').addEventListener('mouseleave', () => { document.querySelector('#chart-tooltip').style.display = 'none'; drawKline(); });
+    window.addEventListener('resize', () => { if (document.querySelector('#detail-dialog').open) drawKline(); });
     load();
   </script>
 </body>
