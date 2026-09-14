@@ -10,7 +10,9 @@
     "phase1_scan": true,
     "phase2_validation": true,
     "phase3_transition": true,
-    "tracker_schema": true
+    "tracker_schema": true,
+    "kline_bundle": true
   },
   "note": "仅在官方交易日且收盘行情日期一致时更新。"
 }
+
