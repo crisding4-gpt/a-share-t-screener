@@ -45,7 +45,7 @@
       box-shadow: inset 0 1px rgba(255,255,255,.08);
     }
     .brand h1 { margin: 0; font-size: 1.2rem; letter-spacing: .02em; }
-    .brand p { margin: 1px 0 0; color: var(--muted); font-size: .82rem; }
+    .brand p { margin: 3px 0 0; max-width: 780px; color: var(--muted); font-size: .78rem; line-height: 1.45; }
     .asof { padding: 8px 12px; border: 1px solid var(--line); border-radius: 9px; color: var(--muted); background: rgba(13,25,40,.72); font-size: .85rem; }
     .asof strong { color: var(--text); font-weight: 600; }
     .asof small { display: block; margin-top: 2px; color: var(--green); font-size: .68rem; text-align: right; }
@@ -122,8 +122,8 @@
     }
     @media (max-width: 620px) {
       .shell { width: min(100% - 24px, 1500px); padding-top: 16px; }
-      header { align-items: flex-start; }
-      .brand p { display: none; }
+      header { align-items: flex-start; flex-direction: column; }
+      .brand p { display: block; max-width: none; font-size: .72rem; }
       .asof { font-size: .74rem; }
       .focus { padding: 19px; }
       .focus-head { align-items: flex-start; }
