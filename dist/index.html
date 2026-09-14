@@ -48,6 +48,7 @@
     .brand p { margin: 1px 0 0; color: var(--muted); font-size: .82rem; }
     .asof { padding: 8px 12px; border: 1px solid var(--line); border-radius: 9px; color: var(--muted); background: rgba(13,25,40,.72); font-size: .85rem; }
     .asof strong { color: var(--text); font-weight: 600; }
+    .asof small { display: block; margin-top: 2px; color: var(--green); font-size: .68rem; text-align: right; }
     .top-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 18px; }
     .panel { background: linear-gradient(145deg, rgba(17,31,49,.96), rgba(10,21,35,.96)); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); }
     .focus { padding: 24px; position: relative; overflow: hidden; }
@@ -142,28 +143,24 @@
         </div>
         <div><h1>选股手册</h1><p>第三阶段 · 观察候选的进入、成熟与失效</p></div>
       </div>
-      <div class="asof">数据日 <strong id="asof">载入中</strong></div>
+      <div class="asof">数据日 <strong id="asof">载入中</strong><small id="update-state">校验状态载入中</small></div>
     </header>
 
     <section class="top-grid" aria-label="关键状态">
       <article class="panel focus">
         <div class="eyebrow">重点观察</div>
         <div class="focus-head">
-          <div><h2>东华科技 <span class="ticker">002140</span></h2></div>
-          <div class="price"><strong id="dh-price">9.46</strong><span id="dh-change">较前日 -1.56%</span></div>
+          <div><h2><span id="focus-name">载入中</span> <span class="ticker" id="focus-code">—</span></h2></div>
+          <div class="price"><strong id="focus-price">—</strong><span id="focus-change">较前日 —</span></div>
         </div>
-        <div class="status-line">
-          <span class="tag">试盘后待缩量回踩</span>
-          <span class="tag market">大盘风险期</span>
-          <span class="tag">公告初筛未见风险</span>
-        </div>
+        <div class="status-line" id="focus-tags"></div>
         <div class="metrics">
-          <div class="metric"><span>亚星相似度</span><strong id="dh-score">77</strong></div>
-          <div class="metric"><span>120日回撤</span><strong id="dh-drawdown">29.14%</strong></div>
-          <div class="metric"><span>距20日高点</span><strong id="dh-days">1日</strong></div>
-          <div class="metric"><span>成熟条件</span><strong style="color:var(--amber)">未满足</strong></div>
+          <div class="metric"><span>亚星相似度</span><strong id="focus-score">—</strong></div>
+          <div class="metric"><span>120日回撤</span><strong id="focus-drawdown">—</strong></div>
+          <div class="metric"><span>距20日高点</span><strong id="focus-days">—</strong></div>
+          <div class="metric"><span>成熟条件</span><strong id="focus-maturity" style="color:var(--amber)">—</strong></div>
         </div>
-        <p class="watch-note">等待至少5个交易日缩量回踩确认。进入观察池不等于买点，当前不追高。</p>
+        <p class="watch-note" id="focus-note">观察池正在载入。进入观察池不等于买点。</p>
       </article>
 
       <div class="kpis">
@@ -207,7 +204,7 @@
   </dialog>
 
   <script>
-    const state = { data: null, filter: 'all', query: '' };
+    const state = { data: null, updateStatus: null, filter: 'all', query: '' };
     const fmt = (value, suffix = '') => Number.isFinite(value) ? `${value.toFixed(2)}${suffix}` : '—';
     const eventClass = (event) => event === '新进入观察' ? 'new' : event === '继续等待回踩' ? 'wait' : event === '结构或规则失效' ? 'fail' : '';
 
@@ -252,29 +249,64 @@
       document.querySelector('#detail-dialog').showModal();
     }
 
+    function renderFocus() {
+      const candidates = (state.data?.events || [])
+        .filter(item => item.current_status && item.current_status !== '剔除' && item.event !== '结构或规则失效')
+        .sort((a, b) => {
+          const executable = item => item.current_status === '次日观察池' ? 2 : item.maturity_ready ? 1 : 0;
+          return executable(b) - executable(a) || (b.similarity_score || 0) - (a.similarity_score || 0);
+        });
+      const item = candidates[0];
+      if (!item) {
+        document.querySelector('#focus-name').textContent = '暂无可跟踪候选';
+        document.querySelector('#focus-code').textContent = '';
+        document.querySelector('#focus-tags').innerHTML = '<span class="tag">等待下一交易日筛选</span>';
+        document.querySelector('#focus-note').textContent = '当前没有仍在观察状态的候选，不沿用已失效股票的旧价位。';
+        return;
+      }
+      document.querySelector('#focus-name').textContent = item.name || '未命名';
+      document.querySelector('#focus-code').textContent = item.code || '—';
+      document.querySelector('#focus-price').textContent = fmt(item.current_price);
+      document.querySelector('#focus-change').textContent = `较前日 ${fmt(item.price_change_pct, '%')}`;
+      document.querySelector('#focus-score').textContent = item.similarity_score ?? '—';
+      document.querySelector('#focus-drawdown').textContent = fmt(item.drawdown120_pct, '%');
+      document.querySelector('#focus-days').textContent = `${item.days_since_high20 ?? '—'}日`;
+      const maturity = document.querySelector('#focus-maturity');
+      maturity.textContent = item.maturity_ready ? '已满足' : '未满足';
+      maturity.style.color = item.maturity_ready ? 'var(--green)' : 'var(--amber)';
+      document.querySelector('#focus-tags').innerHTML = [
+        `<span class="tag">${item.current_status || '状态待核实'}</span>`,
+        `<span class="tag market">${item.market_status || '市场待核实'}</span>`,
+        `<span class="tag">${item.risk_status || '公告待核实'}</span>`
+      ].join('');
+      document.querySelector('#focus-note').textContent = `${item.reasons || '继续观察结构变化'}。进入观察池不等于买点，不追高。`;
+    }
+
     async function load() {
       try {
         const response = await fetch('./tracker.json', { cache: 'no-store' });
         if (!response.ok) throw new Error('数据文件载入失败');
         state.data = await response.json();
+        try {
+          const statusResponse = await fetch('./update-status.json', { cache: 'no-store' });
+          if (statusResponse.ok) state.updateStatus = await statusResponse.json();
+        } catch (_) {}
         const summary = state.data.summary || {};
         document.querySelector('#asof').textContent = state.data.asof || '—';
+        const validated = state.updateStatus?.status === 'validated' && state.updateStatus?.asof === state.data.asof;
+        const updateState = document.querySelector('#update-state');
+        updateState.textContent = validated ? `自动更新已校验 · ${state.updateStatus.generated_at || ''}` : '历史数据 · 自动校验状态不可用';
+        updateState.style.color = validated ? 'var(--green)' : 'var(--amber)';
         document.querySelector('#compare-date').textContent = `对比 ${state.data.previous_asof || '—'} → ${state.data.asof || '—'}`;
         document.querySelector('#visible-count').textContent = state.data.current_visible ?? 0;
         document.querySelector('#new-count').textContent = summary['新进入观察'] || 0;
         document.querySelector('#wait-count').textContent = summary['继续等待回踩'] || 0;
         document.querySelector('#fail-count').textContent = summary['结构或规则失效'] || 0;
-        const donghua = state.data.events.find(item => item.code === '002140');
-        if (donghua) {
-          document.querySelector('#dh-price').textContent = fmt(donghua.current_price);
-          document.querySelector('#dh-change').textContent = `较前日 ${fmt(donghua.price_change_pct, '%')}`;
-          document.querySelector('#dh-score').textContent = donghua.similarity_score ?? '—';
-          document.querySelector('#dh-drawdown').textContent = fmt(donghua.drawdown120_pct, '%');
-          document.querySelector('#dh-days').textContent = `${donghua.days_since_high20 ?? '—'}日`;
-        }
+        renderFocus();
         render();
       } catch (error) {
         document.querySelector('#asof').textContent = '数据不可用';
+        document.querySelector('#update-state').textContent = '更新校验失败';
         document.querySelector('#empty').textContent = error.message;
         document.querySelector('#empty').style.display = 'block';
       }
