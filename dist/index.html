@@ -248,7 +248,7 @@
           <td><strong>${item.name}</strong><span class="symbol">${item.code}</span></td>
           <td>${item.current_status}</td>
           <td>${fmt(item.current_price)}</td>
-          <td style="color:${(item.price_change_pct || 0) >= 0 ? 'var(--green)' : 'var(--red)'}">${fmt(item.price_change_pct, '%')}</td>
+          <td style="color:${item.price_change_pct > 0 ? 'var(--red)' : item.price_change_pct < 0 ? 'var(--green)' : 'var(--muted)'}">${fmt(item.price_change_pct, '%')}</td>
           <td class="score">${item.similarity_score ?? '—'}</td>
           <td>${fmt(item.drawdown120_pct, '%')}</td>
           <td>${item.days_since_high20 ?? '—'}日</td>
@@ -391,7 +391,9 @@
       document.querySelector('#focus-name').textContent = item.name || '未命名';
       document.querySelector('#focus-code').textContent = item.code || '—';
       document.querySelector('#focus-price').textContent = fmt(item.current_price);
-      document.querySelector('#focus-change').textContent = `较前日 ${fmt(item.price_change_pct, '%')}`;
+      const focusChange = document.querySelector('#focus-change');
+      focusChange.textContent = `较前日 ${fmt(item.price_change_pct, '%')}`;
+      focusChange.style.color = item.price_change_pct > 0 ? 'var(--red)' : item.price_change_pct < 0 ? 'var(--green)' : 'var(--muted)';
       document.querySelector('#focus-score').textContent = item.similarity_score ?? '—';
       document.querySelector('#focus-drawdown').textContent = fmt(item.drawdown120_pct, '%');
       document.querySelector('#focus-days').textContent = `${item.days_since_high20 ?? '—'}日`;
