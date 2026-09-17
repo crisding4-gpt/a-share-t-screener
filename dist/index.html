@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>ѡ���ֲ�</title>
-  <meta name="description" content="ѡ���ֲ�����۲��ÿ��״̬���ٿ���">
+  <title>选股手册</title>
+  <meta name="description" content="选股手册主板观察池每日状态跟踪看板">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23091825'/%3E%3Cpath d='M13 43h9l7-14 7 9 7-19 8 24' fill='none' stroke='%236ee7b7' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
   <style>
     :root {
@@ -155,80 +155,80 @@
         <div class="mark" aria-hidden="true">
           <svg width="27" height="27" viewBox="0 0 32 32" fill="none"><path d="M3 23h5l4-9 5 6 4-12 8 15" stroke="#6ee7b7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
-        <div><h1>ѡ���ֲ�</h1><p>Ͷ���з��գ��������������ҳ�����ݽ�����ѡ�ɷ����о���۲��¼���������κ�Ͷ�ʽ��顢�����ŵ���������ݡ�Ͷ����Ӧ�����жϲ����ге����׷��ա�</p></div>
+        <div><h1>选股手册</h1><p>投资有风险，入市需谨慎。本页面内容仅用于选股方法研究与观察记录，不构成任何投资建议、收益承诺或买卖依据。投资者应独立判断并自行承担交易风险。</p></div>
       </div>
-      <div class="asof">������ <strong id="asof">������</strong><small id="update-state">У��״̬������</small></div>
+      <div class="asof">数据日 <strong id="asof">载入中</strong><small id="update-state">校验状态载入中</small></div>
     </header>
 
-    <section class="top-grid" aria-label="�ؼ�״̬">
+    <section class="top-grid" aria-label="关键状态">
       <article class="panel focus">
-        <div class="eyebrow">�ص�۲�</div>
+        <div class="eyebrow">重点观察</div>
         <div class="focus-head">
-          <div><h2><span id="focus-name">������</span> <span class="ticker" id="focus-code">��</span></h2></div>
-          <div class="price"><strong id="focus-price">��</strong><span id="focus-change">��ǰ�� ��</span></div>
+          <div><h2><span id="focus-name">载入中</span> <span class="ticker" id="focus-code">—</span></h2></div>
+          <div class="price"><strong id="focus-price">—</strong><span id="focus-change">较前日 —</span></div>
         </div>
         <div class="status-line" id="focus-tags"></div>
         <div class="metrics">
-          <div class="metric"><span>ָ�����ƶ�</span><strong id="focus-score">��</strong></div>
-          <div class="metric"><span>�ɽ��׻�Ծ��</span><strong id="focus-activity">��</strong></div>
-          <div class="metric"><span>120�ջس�</span><strong id="focus-drawdown">��</strong></div>
-          <div class="metric"><span>��20�ոߵ�</span><strong id="focus-days">��</strong></div>
-          <div class="metric"><span>��������</span><strong id="focus-maturity" style="color:var(--amber)">��</strong></div>
+          <div class="metric"><span>指标相似度</span><strong id="focus-score">—</strong></div>
+          <div class="metric"><span>可交易活跃度</span><strong id="focus-activity">—</strong></div>
+          <div class="metric"><span>120日回撤</span><strong id="focus-drawdown">—</strong></div>
+          <div class="metric"><span>距20日高点</span><strong id="focus-days">—</strong></div>
+          <div class="metric"><span>成熟条件</span><strong id="focus-maturity" style="color:var(--amber)">—</strong></div>
         </div>
-        <p class="watch-note" id="focus-note">�۲���������롣����۲�ز�������㡣</p>
+        <p class="watch-note" id="focus-note">观察池正在载入。进入观察池不等于买点。</p>
       </article>
 
       <div class="kpis">
-        <article class="panel kpi"><span>��ǰ�۲��ѡ</span><strong id="visible-count">9</strong><small>ͨ�����ƶ���س�Ӳ�ż�</small></article>
-        <article class="panel kpi good"><span>�½���۲�</span><strong id="new-count">6</strong><small>���ǰһ������</small></article>
-        <article class="panel kpi warn"><span>�����ȴ��ز�</span><strong id="wait-count">3</strong><small>�������δ����</small></article>
-        <article class="panel kpi bad"><span>�ṹ�����ʧЧ</span><strong id="fail-count">9</strong><small>�������þɹ۲��λ</small></article>
+        <article class="panel kpi"><span>当前观察候选</span><strong id="visible-count">9</strong><small>通过相似度与回撤硬门槛</small></article>
+        <article class="panel kpi good"><span>新进入观察</span><strong id="new-count">6</strong><small>相较前一交易日</small></article>
+        <article class="panel kpi warn"><span>继续等待回踩</span><strong id="wait-count">3</strong><small>成熟度尚未满足</small></article>
+        <article class="panel kpi bad"><span>结构或规则失效</span><strong id="fail-count">9</strong><small>不得沿用旧观察价位</small></article>
       </div>
     </section>
 
     <div class="toolbar">
       <div>
-        <h2>״̬�¼�</h2>
-        <div class="filters" role="group" aria-label="�¼�ɸѡ">
-          <button class="filter active" data-filter="all">ȫ��</button>
-          <button class="filter" data-filter="�½���۲�">�½���</button>
-          <button class="filter" data-filter="�����ȴ��ز�">�ȴ��ز�</button>
-          <button class="filter" data-filter="�ṹ�����ʧЧ">ʧЧ</button>
+        <h2>状态事件</h2>
+        <div class="filters" role="group" aria-label="事件筛选">
+          <button class="filter active" data-filter="all">全部</button>
+          <button class="filter" data-filter="新进入观察">新进入</button>
+          <button class="filter" data-filter="继续等待回踩">等待回踩</button>
+          <button class="filter" data-filter="结构或规则失效">失效</button>
         </div>
       </div>
-      <input class="search" id="search" type="search" placeholder="�������������" aria-label="�������������">
+      <input class="search" id="search" type="search" placeholder="搜索代码或名称" aria-label="搜索代码或名称">
     </div>
 
-    <section class="table-wrap" aria-label="�۲���¼���">
+    <section class="table-wrap" aria-label="观察池事件表">
       <table>
-        <thead><tr><th>�¼�</th><th>��Ʊ</th><th>��ǰ״̬</th><th>�ּ�</th><th>�ձ仯</th><th>���ƶ�</th><th>��Ծ��</th><th>120�ջس�</th><th>��ߵ�</th><th>��Ҫԭ��</th></tr></thead>
+        <thead><tr><th>事件</th><th>股票</th><th>当前状态</th><th>现价</th><th>日变化</th><th>相似度</th><th>活跃度</th><th>120日回撤</th><th>距高点</th><th>主要原因</th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
-      <div class="empty" id="empty">û�з��ϵ�ǰɸѡ�����ļ�¼</div>
+      <div class="empty" id="empty">没有符合当前筛选条件的记录</div>
     </section>
 
   </main>
 
   <dialog id="detail-dialog">
-    <div class="dialog-head"><h3 id="dialog-title">��Ʊ����</h3><button class="close" id="close-dialog" aria-label="�ر�">��</button></div>
+    <div class="dialog-head"><h3 id="dialog-title">股票详情</h3><button class="close" id="close-dialog" aria-label="关闭">×</button></div>
     <div class="dialog-body">
       <div class="detail-grid" id="detail-grid"></div><p class="dialog-reason" id="dialog-reason"></p>
-      <section class="chart-block" aria-label="��K��ͼ">
+      <section class="chart-block" aria-label="日K线图">
         <div class="chart-head">
-          <div class="chart-title"><strong>ǰ��Ȩ��K</strong><span id="chart-source">�����Ʊ������</span></div>
-          <div class="periods" role="group" aria-label="K������">
-            <button class="period" data-period="30">30��</button><button class="period active" data-period="60">60��</button><button class="period" data-period="120">120��</button>
+          <div class="chart-title"><strong>前复权日K</strong><span id="chart-source">点击股票后载入</span></div>
+          <div class="periods" role="group" aria-label="K线周期">
+            <button class="period" data-period="30">30日</button><button class="period active" data-period="60">60日</button><button class="period" data-period="120">120日</button>
           </div>
         </div>
-        <div class="chart-frame"><canvas id="kline-canvas"></canvas><div class="chart-message" id="chart-message">K��������</div><div class="chart-tooltip" id="chart-tooltip"></div></div>
+        <div class="chart-frame"><canvas id="kline-canvas"></canvas><div class="chart-message" id="chart-message">K线载入中</div><div class="chart-tooltip" id="chart-tooltip"></div></div>
       </section>
     </div>
   </dialog>
 
   <script>
     const state = { data: null, updateStatus: null, klines: null, klinePromise: null, chart: null, filter: 'all', query: '' };
-    const fmt = (value, suffix = '') => Number.isFinite(value) ? `${value.toFixed(2)}${suffix}` : '��';
-    const eventClass = (event) => event === '�½���۲�' ? 'new' : event === '�����ȴ��ز�' ? 'wait' : event === '�ṹ�����ʧЧ' ? 'fail' : '';
+    const fmt = (value, suffix = '') => Number.isFinite(value) ? `${value.toFixed(2)}${suffix}` : '—';
+    const eventClass = (event) => event === '新进入观察' ? 'new' : event === '继续等待回踩' ? 'wait' : event === '结构或规则失效' ? 'fail' : '';
 
     function render() {
       const data = state.data;
@@ -245,11 +245,11 @@
           <td>${item.current_status}</td>
           <td>${fmt(item.current_price)}</td>
           <td style="color:${item.price_change_pct > 0 ? 'var(--red)' : item.price_change_pct < 0 ? 'var(--green)' : 'var(--muted)'}">${fmt(item.price_change_pct, '%')}</td>
-          <td class="score">${item.similarity_score ?? '��'}</td>
-          <td class="score">${item.activity_score ?? '��'}</td>
+          <td class="score">${item.similarity_score ?? '—'}</td>
+          <td class="score">${item.activity_score ?? '—'}</td>
           <td>${fmt(item.drawdown120_pct, '%')}</td>
-          <td>${item.days_since_high20 ?? '��'}��</td>
-          <td class="reason">${item.reasons || '��'}</td>
+          <td>${item.days_since_high20 ?? '—'}日</td>
+          <td class="reason">${item.reasons || '—'}</td>
         </tr>`).join('');
       document.querySelector('#empty').style.display = events.length ? 'none' : 'block';
       body.querySelectorAll('tr').forEach(row => {
@@ -263,7 +263,7 @@
       if (state.klines) return state.klines;
       if (!state.klinePromise) {
         state.klinePromise = fetch('./klines.json', { cache: 'no-store' }).then(response => {
-          if (!response.ok) throw new Error('K�������ļ�����ʧ��');
+          if (!response.ok) throw new Error('K线数据文件载入失败');
           return response.json();
         }).then(data => (state.klines = data));
       }
@@ -340,98 +340,98 @@
     async function renderKline(item, period = 60) {
       const message = document.querySelector('#chart-message');
       const tooltip = document.querySelector('#chart-tooltip');
-      message.style.display = 'grid'; message.textContent = 'K��������'; tooltip.style.display = 'none';
+      message.style.display = 'grid'; message.textContent = 'K线载入中'; tooltip.style.display = 'none';
       document.querySelectorAll('.period').forEach(button => button.classList.toggle('active', Number(button.dataset.period) === period));
       try {
         const bundle = await loadKlines();
         const record = bundle.symbols?.[item.symbol];
-        if (!record?.rows?.length) throw new Error('�ù�Ʊ��ʱû�п���K��');
+        if (!record?.rows?.length) throw new Error('该股票暂时没有可用K线');
         state.chart = { item, period, rows: record.rows.slice(-period) };
-        document.querySelector('#chart-source').textContent = `${bundle.source || 'ǰ��Ȩ��K'} �� ����${bundle.asof || '��'}`;
+        document.querySelector('#chart-source').textContent = `${bundle.source || '前复权日K'} · 截至${bundle.asof || '—'}`;
         message.style.display = 'none';
         drawKline();
       } catch (error) {
         state.chart = null;
-        message.textContent = error.message || 'K������ʧ��';
+        message.textContent = error.message || 'K线载入失败';
       }
     }
 
     function showDetail(item) {
-      document.querySelector('#dialog-title').textContent = `${item.name} �� ${item.code}`;
+      document.querySelector('#dialog-title').textContent = `${item.name} · ${item.code}`;
       const details = [
-        ['�¼�', item.event], ['ԭ״̬', item.previous_status], ['��ǰ״̬', item.current_status],
-        ['�ּ�', fmt(item.current_price)], ['�ձ仯', fmt(item.price_change_pct, '%')],
-        ['ָ�����ƶ�', item.similarity_score ?? '��'], ['�ɽ��׻�Ծ��', item.activity_score ?? '��'], ['120�ջس�', fmt(item.drawdown120_pct, '%')],
-        ['��20�ոߵ�', `${item.days_since_high20 ?? '��'}��`], ['�������', item.risk_status || '��'], ['�г�����', item.market_status || '��']
+        ['事件', item.event], ['原状态', item.previous_status], ['当前状态', item.current_status],
+        ['现价', fmt(item.current_price)], ['日变化', fmt(item.price_change_pct, '%')],
+        ['指标相似度', item.similarity_score ?? '—'], ['可交易活跃度', item.activity_score ?? '—'], ['120日回撤', fmt(item.drawdown120_pct, '%')],
+        ['距20日高点', `${item.days_since_high20 ?? '—'}日`], ['公告风险', item.risk_status || '—'], ['市场环境', item.market_status || '—']
       ];
       document.querySelector('#detail-grid').innerHTML = details.map(([label, value]) => `<div class="detail"><span>${label}</span><strong>${value}</strong></div>`).join('');
-      document.querySelector('#dialog-reason').textContent = item.reasons || '��ǰû�в���ԭ��';
+      document.querySelector('#dialog-reason').textContent = item.reasons || '当前没有补充原因。';
       document.querySelector('#detail-dialog').showModal();
       renderKline(item, 60);
     }
 
     function renderFocus() {
       const candidates = (state.data?.events || [])
-        .filter(item => item.current_status && item.current_status !== '�޳�' && item.event !== '�ṹ�����ʧЧ')
+        .filter(item => item.current_status && item.current_status !== '剔除' && item.event !== '结构或规则失效')
         .sort((a, b) => {
-          const executable = item => item.current_status === '���չ۲��' ? 2 : item.maturity_ready ? 1 : 0;
+          const executable = item => item.current_status === '次日观察池' ? 2 : item.maturity_ready ? 1 : 0;
           return executable(b) - executable(a)
             || (b.similarity_score || 0) - (a.similarity_score || 0)
             || (b.activity_score || 0) - (a.activity_score || 0);
         });
       const item = candidates[0];
       if (!item) {
-        document.querySelector('#focus-name').textContent = '���޿ɸ��ٺ�ѡ';
+        document.querySelector('#focus-name').textContent = '暂无可跟踪候选';
         document.querySelector('#focus-code').textContent = '';
-        document.querySelector('#focus-tags').innerHTML = '<span class="tag">�ȴ���һ������ɸѡ</span>';
-        document.querySelector('#focus-note').textContent = '��ǰû�����ڹ۲�״̬�ĺ�ѡ����������ʧЧ��Ʊ�ľɼ�λ��';
+        document.querySelector('#focus-tags').innerHTML = '<span class="tag">等待下一交易日筛选</span>';
+        document.querySelector('#focus-note').textContent = '当前没有仍在观察状态的候选，不沿用已失效股票的旧价位。';
         return;
       }
-      document.querySelector('#focus-name').textContent = item.name || 'δ����';
-      document.querySelector('#focus-code').textContent = item.code || '��';
+      document.querySelector('#focus-name').textContent = item.name || '未命名';
+      document.querySelector('#focus-code').textContent = item.code || '—';
       document.querySelector('#focus-price').textContent = fmt(item.current_price);
       const focusChange = document.querySelector('#focus-change');
-      focusChange.textContent = `��ǰ�� ${fmt(item.price_change_pct, '%')}`;
+      focusChange.textContent = `较前日 ${fmt(item.price_change_pct, '%')}`;
       focusChange.style.color = item.price_change_pct > 0 ? 'var(--red)' : item.price_change_pct < 0 ? 'var(--green)' : 'var(--muted)';
-      document.querySelector('#focus-score').textContent = item.similarity_score ?? '��';
-      document.querySelector('#focus-activity').textContent = item.activity_score ?? '��';
+      document.querySelector('#focus-score').textContent = item.similarity_score ?? '—';
+      document.querySelector('#focus-activity').textContent = item.activity_score ?? '—';
       document.querySelector('#focus-drawdown').textContent = fmt(item.drawdown120_pct, '%');
-      document.querySelector('#focus-days').textContent = `${item.days_since_high20 ?? '��'}��`;
+      document.querySelector('#focus-days').textContent = `${item.days_since_high20 ?? '—'}日`;
       const maturity = document.querySelector('#focus-maturity');
-      maturity.textContent = item.maturity_ready ? '������' : 'δ����';
+      maturity.textContent = item.maturity_ready ? '已满足' : '未满足';
       maturity.style.color = item.maturity_ready ? 'var(--green)' : 'var(--amber)';
       document.querySelector('#focus-tags').innerHTML = [
-        `<span class="tag">${item.current_status || '״̬����ʵ'}</span>`,
-        `<span class="tag market">${item.market_status || '�г�����ʵ'}</span>`,
-        `<span class="tag">${item.risk_status || '�������ʵ'}</span>`
+        `<span class="tag">${item.current_status || '状态待核实'}</span>`,
+        `<span class="tag market">${item.market_status || '市场待核实'}</span>`,
+        `<span class="tag">${item.risk_status || '公告待核实'}</span>`
       ].join('');
-      document.querySelector('#focus-note').textContent = `${item.reasons || '�����۲�ṹ�仯'}������۲�ز�������㣬��׷�ߡ�`;
+      document.querySelector('#focus-note').textContent = `${item.reasons || '继续观察结构变化'}。进入观察池不等于买点，不追高。`;
     }
 
     async function load() {
       try {
         const response = await fetch('./tracker.json', { cache: 'no-store' });
-        if (!response.ok) throw new Error('�����ļ�����ʧ��');
+        if (!response.ok) throw new Error('数据文件载入失败');
         state.data = await response.json();
         try {
           const statusResponse = await fetch('./update-status.json', { cache: 'no-store' });
           if (statusResponse.ok) state.updateStatus = await statusResponse.json();
         } catch (_) {}
         const summary = state.data.summary || {};
-        document.querySelector('#asof').textContent = state.data.asof || '��';
+        document.querySelector('#asof').textContent = state.data.asof || '—';
         const validated = state.updateStatus?.status === 'validated' && state.updateStatus?.asof === state.data.asof;
         const updateState = document.querySelector('#update-state');
-        updateState.textContent = validated ? `�Զ�������У�� �� ${state.updateStatus.generated_at || ''}` : '��ʷ���� �� �Զ�У��״̬������';
+        updateState.textContent = validated ? `自动更新已校验 · ${state.updateStatus.generated_at || ''}` : '历史数据 · 自动校验状态不可用';
         updateState.style.color = validated ? 'var(--green)' : 'var(--amber)';
         document.querySelector('#visible-count').textContent = state.data.current_visible ?? 0;
-        document.querySelector('#new-count').textContent = summary['�½���۲�'] || 0;
-        document.querySelector('#wait-count').textContent = summary['�����ȴ��ز�'] || 0;
-        document.querySelector('#fail-count').textContent = summary['�ṹ�����ʧЧ'] || 0;
+        document.querySelector('#new-count').textContent = summary['新进入观察'] || 0;
+        document.querySelector('#wait-count').textContent = summary['继续等待回踩'] || 0;
+        document.querySelector('#fail-count').textContent = summary['结构或规则失效'] || 0;
         renderFocus();
         render();
       } catch (error) {
-        document.querySelector('#asof').textContent = '���ݲ�����';
-        document.querySelector('#update-state').textContent = '����У��ʧ��';
+        document.querySelector('#asof').textContent = '数据不可用';
+        document.querySelector('#update-state').textContent = '更新校验失败';
         document.querySelector('#empty').textContent = error.message;
         document.querySelector('#empty').style.display = 'block';
       }
@@ -455,7 +455,7 @@
       const row = state.chart.rows[index];
       drawKline(index);
       const tip = document.querySelector('#chart-tooltip');
-      tip.textContent = `${row[0]}  ��${Number(row[1]).toFixed(2)}  ��${Number(row[2]).toFixed(2)}  ��${Number(row[3]).toFixed(2)}  ��${Number(row[4]).toFixed(2)}  ��${Math.round(Number(row[5])).toLocaleString()}��`;
+      tip.textContent = `${row[0]}  开${Number(row[1]).toFixed(2)}  收${Number(row[2]).toFixed(2)}  高${Number(row[3]).toFixed(2)}  低${Number(row[4]).toFixed(2)}  量${Math.round(Number(row[5])).toLocaleString()}手`;
       tip.style.display = 'block';
       tip.style.left = `${Math.max(8, Math.min(event.offsetX + 12, canvas.clientWidth - tip.offsetWidth - 8))}px`;
       tip.style.top = '8px';
@@ -466,4 +466,3 @@
   </script>
 </body>
 </html>
-
