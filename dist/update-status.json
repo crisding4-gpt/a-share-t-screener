@@ -3,7 +3,7 @@
   "status": "validated",
   "asof": "2026-09-16",
   "previous_asof": "2026-09-15",
-  "generated_at": "2026-09-16T18:32:46+08:00",
+  "generated_at": "2026-09-17T16:32:56+08:00",
   "checks": {
     "official_trading_calendar": true,
     "tencent_close_date": true,
@@ -11,7 +11,9 @@
     "phase2_validation": true,
     "phase3_transition": true,
     "tracker_schema": true,
+    "activity_score": true,
     "kline_bundle": true
   },
   "note": "\u4ec5\u5728\u5b98\u65b9\u4ea4\u6613\u65e5\u4e14\u6536\u76d8\u884c\u60c5\u65e5\u671f\u4e00\u81f4\u65f6\u66f4\u65b0\u3002"
 }
+
