@@ -5,11 +5,11 @@
   "asof": "2026-09-18",
   "summary": {
     "\u7ed3\u6784\u6216\u89c4\u5219\u5931\u6548": 8,
-    "\u65b0\u8fdb\u5165\u89c2\u5bdf": 1,
+    "\u65b0\u8fdb\u5165\u89c2\u5bdf": 2,
     "\u7ee7\u7eed\u7b49\u5f85\u56de\u8e29": 1,
     "\u7ee7\u7eed\u89c2\u5bdf": 1
   },
-  "current_visible": 3,
+  "current_visible": 4,
   "current_executable": 0,
   "events": [
     {
@@ -254,6 +254,33 @@
       "risk_status": "\u6709\u4e8b\u9879\u5f85\u590d\u6838",
       "market_status": "\u504f\u5f31",
       "reasons": ""
+    },
+    {
+      "event": "\u65b0\u8fdb\u5165\u89c2\u5bdf",
+      "code": "603066",
+      "symbol": "sh603066",
+      "name": "\u97f3\u98de\u50a8\u5b58",
+      "industry": "\u7269\u6d41",
+      "previous_status": "\u5254\u9664",
+      "current_status": "\u5f62\u6001\u89c2\u5bdf",
+      "previous_price": 9.03,
+      "current_price": 9.05,
+      "price_change_pct": 0.22148394241419123,
+      "similarity_score": 76,
+      "activity_score": 43,
+      "stage": "\u5f3a\u653e\u91cf\u4e0a\u5f71\u5f85\u89c2\u5bdf",
+      "test_grade": "A",
+      "test_event": "\u5f3a\u653e\u91cf\u4e0a\u5f71\u5f85\u89c2\u5bdf",
+      "test_volume_ratio": 5.712258765969013,
+      "test_turnover_pct": 7.14,
+      "broken_board_confirmed": true,
+      "broken_board_source_status": "ok",
+      "drawdown120_pct": 26.661264181523492,
+      "days_since_high20": 7,
+      "maturity_ready": true,
+      "risk_status": "\u6709\u4e8b\u9879\u5f85\u590d\u6838",
+      "market_status": "\u504f\u5f31",
+      "reasons": "\u653e\u91cf\u65e5\u6536\u76d8\u4f4d\u7f6e\u5904\u4e8e\u89c2\u5bdf\u533a\u95f4\uff0c\u4ec5\u8fdb\u5165\u5f62\u6001\u89c2\u5bdf\u6c60\uff1b\u5de8\u91cf\u8bd5\u76d8\u540e\u7684\u56de\u8e29\u5e45\u5ea6\u3001\u7f29\u91cf\u7a0b\u5ea6\u6216\u7ed3\u6784\u7a33\u5b9a\u6027\u4e0d\u8db3"
     },
     {
       "event": "\u7ee7\u7eed\u7b49\u5f85\u56de\u8e29",

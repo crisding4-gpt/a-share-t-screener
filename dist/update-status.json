@@ -3,7 +3,7 @@
   "status": "validated",
   "asof": "2026-09-18",
   "previous_asof": "2026-09-17",
-  "generated_at": "2026-09-19T17:11:54+08:00",
+  "generated_at": "2026-09-20T21:42:28+08:00",
   "checks": {
     "official_trading_calendar": true,
     "tencent_close_date": true,
