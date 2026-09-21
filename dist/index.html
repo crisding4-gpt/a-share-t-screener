@@ -51,7 +51,6 @@
     .brand p { margin: 3px 0 0; max-width: 780px; color: var(--muted); font-size: .78rem; line-height: 1.45; }
     .asof { padding: 8px 12px; border: 1px solid var(--line); border-radius: 9px; color: var(--muted); background: rgba(13,25,40,.72); font-size: .85rem; }
     .asof strong { color: var(--text); font-weight: 600; }
-    .asof small { display: block; margin-top: 2px; color: var(--green); font-size: .68rem; text-align: right; }
     .top-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 18px; }
     .panel { background: linear-gradient(145deg, rgba(17,31,49,.96), rgba(10,21,35,.96)); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); }
     .focus { padding: 24px; position: relative; overflow: hidden; }
@@ -157,7 +156,7 @@
         </div>
         <div><h1>选股手册</h1><p>投资有风险，入市需谨慎。本页面内容仅用于选股方法研究与观察记录，不构成任何投资建议、收益承诺或买卖依据。投资者应独立判断并自行承担交易风险。</p></div>
       </div>
-      <div class="asof">数据日 <strong id="asof">载入中</strong><small id="update-state">校验状态载入中</small></div>
+      <div class="asof">数据日 <strong id="asof">载入中</strong></div>
     </header>
 
     <section class="top-grid" aria-label="关键状态">
@@ -226,7 +225,7 @@
   </dialog>
 
   <script>
-    const state = { data: null, updateStatus: null, klines: null, klinePromise: null, chart: null, filter: 'all', query: '' };
+    const state = { data: null, klines: null, klinePromise: null, chart: null, filter: 'all', query: '' };
     const fmt = (value, suffix = '') => Number.isFinite(value) ? `${value.toFixed(2)}${suffix}` : '—';
     const eventClass = (event) => ['新进入观察', '升级为可操作'].includes(event) ? 'new' : ['继续等待回踩', '继续观察'].includes(event) ? 'wait' : event === '结构或规则失效' ? 'fail' : '';
 
@@ -422,16 +421,8 @@
         const response = await fetch('./tracker.json', { cache: 'no-store' });
         if (!response.ok) throw new Error('数据文件载入失败');
         state.data = await response.json();
-        try {
-          const statusResponse = await fetch('./update-status.json', { cache: 'no-store' });
-          if (statusResponse.ok) state.updateStatus = await statusResponse.json();
-        } catch (_) {}
         const summary = state.data.summary || {};
         document.querySelector('#asof').textContent = state.data.asof || '—';
-        const validated = state.updateStatus?.status === 'validated' && state.updateStatus?.asof === state.data.asof;
-        const updateState = document.querySelector('#update-state');
-        updateState.textContent = validated ? '自动更新已校验' : '历史数据 · 自动校验状态不可用';
-        updateState.style.color = validated ? 'var(--green)' : 'var(--amber)';
         document.querySelector('#visible-count').textContent = state.data.current_visible ?? 0;
         document.querySelector('#actionable-count').textContent = state.data.current_executable ?? 0;
         document.querySelector('#watch-count').textContent = Math.max(0, (state.data.current_visible ?? 0) - (state.data.current_executable ?? 0));
@@ -440,7 +431,6 @@
         render();
       } catch (error) {
         document.querySelector('#asof').textContent = '数据不可用';
-        document.querySelector('#update-state').textContent = '更新校验失败';
         document.querySelector('#empty').textContent = error.message;
         document.querySelector('#empty').style.display = 'block';
       }
