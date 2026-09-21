@@ -430,7 +430,7 @@
         document.querySelector('#asof').textContent = state.data.asof || '—';
         const validated = state.updateStatus?.status === 'validated' && state.updateStatus?.asof === state.data.asof;
         const updateState = document.querySelector('#update-state');
-        updateState.textContent = validated ? `自动更新已校验 · ${state.updateStatus.generated_at || ''}` : '历史数据 · 自动校验状态不可用';
+        updateState.textContent = validated ? '自动更新已校验' : '历史数据 · 自动校验状态不可用';
         updateState.style.color = validated ? 'var(--green)' : 'var(--amber)';
         document.querySelector('#visible-count').textContent = state.data.current_visible ?? 0;
         document.querySelector('#actionable-count').textContent = state.data.current_executable ?? 0;
