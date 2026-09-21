@@ -95,10 +95,12 @@
     .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); }
     .event.new .dot { background: var(--green); }
     .event.wait .dot { background: var(--amber); }
+    .event.continue .dot { background: var(--text); }
     .event.fail .dot { background: var(--red); }
     .event.fail { color: #ffabb0; }
     .event.new { color: #a7f3d0; }
     .event.wait { color: #fde2a7; }
+    .event.continue { color: var(--text); }
     .symbol { color: var(--muted); font-size: .74rem; display: block; }
     .score { font-variant-numeric: tabular-nums; font-weight: 700; }
     .reason { max-width: 330px; color: #b6c6d8; }
@@ -161,7 +163,7 @@
 
     <section class="top-grid" aria-label="关键状态">
       <article class="panel focus">
-        <div class="eyebrow">重点观察</div>
+        <div class="eyebrow" id="focus-eyebrow">重点观察</div>
         <div class="focus-head">
           <div><h2><span id="focus-name">载入中</span> <span class="ticker" id="focus-code">—</span></h2></div>
           <div class="price"><strong id="focus-price">—</strong><span id="focus-change">较前日 —</span></div>
@@ -178,21 +180,22 @@
       </article>
 
       <div class="kpis">
-        <article class="panel kpi"><span>当前候选</span><strong id="visible-count">0</strong><small>通过技术硬门槛</small></article>
-        <article class="panel kpi warn"><span>重点观察</span><strong id="actionable-count">0</strong><small>回踩企稳，操作分类为可买入</small></article>
-        <article class="panel kpi good"><span>普通观察</span><strong id="watch-count">0</strong><small>缩量回踩，操作分类为观察</small></article>
-        <article class="panel kpi bad"><span>结构或规则失效</span><strong id="fail-count">9</strong><small>不得沿用旧观察价位</small></article>
+        <article class="panel kpi good"><span>普通观察</span><strong id="normal-count">0</strong><small>观察 · 缩量回踩</small></article>
+        <article class="panel kpi warn"><span>重点观察</span><strong id="key-count">0</strong><small>推荐买入或风险限制 · 回踩企稳</small></article>
+        <article class="panel kpi"><span>继续观察</span><strong id="continue-count">0</strong><small>谨慎买入 · 待突破</small></article>
+        <article class="panel kpi bad"><span>停止观察</span><strong id="stop-count">0</strong><small>剔除 · 破位或基本面已坏</small></article>
       </div>
     </section>
 
     <div class="toolbar">
       <div>
-        <h2>操作分类</h2>
-        <div class="filters" role="group" aria-label="操作分类筛选">
+        <h2>股池</h2>
+        <div class="filters" role="group" aria-label="股池筛选">
           <button class="filter active" data-filter="all">全部</button>
-          <button class="filter" data-filter="可买入">可买入</button>
-          <button class="filter" data-filter="观察">观察</button>
-          <button class="filter" data-filter="失效">失效</button>
+          <button class="filter" data-filter="普通观察">普通观察</button>
+          <button class="filter" data-filter="重点观察">重点观察</button>
+          <button class="filter" data-filter="继续观察">继续观察</button>
+          <button class="filter" data-filter="停止观察">停止观察</button>
         </div>
       </div>
       <input class="search" id="search" type="search" placeholder="搜索代码或名称" aria-label="搜索代码或名称">
@@ -227,13 +230,12 @@
   <script>
     const state = { data: null, klines: null, klinePromise: null, chart: null, filter: 'all', query: '' };
     const fmt = (value, suffix = '') => Number.isFinite(value) ? `${value.toFixed(2)}${suffix}` : '—';
-    const eventClass = (event) => event === '普通观察' ? 'new' : event === '重点观察' ? 'wait' : event === '结构或规则失效' ? 'fail' : '';
+    const eventClass = (event) => event === '普通观察' ? 'new' : event === '重点观察' ? 'wait' : event === '继续观察' ? 'continue' : event === '停止观察' ? 'fail' : '';
 
     function render() {
       const data = state.data;
       const events = (data?.events || []).filter(item => {
-        const filterMatch = state.filter === 'all'
-          || (state.filter === '失效' ? item.event === '结构或规则失效' : item.current_status === state.filter);
+        const filterMatch = state.filter === 'all' || item.event === state.filter;
         const haystack = `${item.code} ${item.name}`.toLowerCase();
         return filterMatch && haystack.includes(state.query);
       });
@@ -379,10 +381,10 @@
 
     function renderFocus() {
       const candidates = (state.data?.events || [])
-        .filter(item => item.current_status && item.current_status !== '剔除' && item.event !== '结构或规则失效')
+        .filter(item => item.current_status && item.current_status !== '剔除' && item.event !== '停止观察')
         .sort((a, b) => {
-          const executable = item => item.current_status === '可买入' ? 2 : item.current_status === '观察' ? 1 : 0;
-          return executable(b) - executable(a)
+          const priority = item => ({ '重点观察': 3, '继续观察': 2, '普通观察': 1 }[item.event] || 0);
+          return priority(b) - priority(a)
             || (b.similarity_score || 0) - (a.similarity_score || 0)
             || (b.activity_score || 0) - (a.activity_score || 0);
         });
@@ -395,6 +397,7 @@
         return;
       }
       document.querySelector('#focus-name').textContent = item.name || '未命名';
+      document.querySelector('#focus-eyebrow').textContent = item.event || '股池观察';
       document.querySelector('#focus-code').textContent = item.code || '—';
       document.querySelector('#focus-price').textContent = fmt(item.current_price);
       const focusChange = document.querySelector('#focus-change');
@@ -413,7 +416,7 @@
         `<span class="tag market">${item.market_status || '市场待核实'}</span>`,
         `<span class="tag">${item.risk_status || '公告待核实'}</span>`
       ].join('');
-      document.querySelector('#focus-note').textContent = `${item.operation_reasons || item.reasons || '当前规则未发现限制项'}。可买入只是筛选分类，不等于买入指令，不追高。`;
+      document.querySelector('#focus-note').textContent = `${item.operation_reasons || item.reasons || '当前规则未发现限制项'}。操作分类只是选股方法标签，不构成投资建议，不追高。`;
     }
 
     async function load() {
@@ -423,10 +426,10 @@
         state.data = await response.json();
         const summary = state.data.summary || {};
         document.querySelector('#asof').textContent = state.data.asof || '—';
-        document.querySelector('#visible-count').textContent = state.data.current_visible ?? 0;
-        document.querySelector('#actionable-count').textContent = state.data.current_executable ?? 0;
-        document.querySelector('#watch-count').textContent = Math.max(0, (state.data.current_visible ?? 0) - (state.data.current_executable ?? 0));
-        document.querySelector('#fail-count').textContent = summary['结构或规则失效'] || 0;
+        document.querySelector('#normal-count').textContent = summary['普通观察'] || 0;
+        document.querySelector('#key-count').textContent = summary['重点观察'] || 0;
+        document.querySelector('#continue-count').textContent = summary['继续观察'] || 0;
+        document.querySelector('#stop-count').textContent = summary['停止观察'] || 0;
         renderFocus();
         render();
       } catch (error) {
