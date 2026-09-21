@@ -179,8 +179,8 @@
 
       <div class="kpis">
         <article class="panel kpi"><span>当前候选</span><strong id="visible-count">0</strong><small>通过技术硬门槛</small></article>
-        <article class="panel kpi good"><span>可操作</span><strong id="actionable-count">0</strong><small>技术、公告与环境均通过</small></article>
-        <article class="panel kpi warn"><span>观察</span><strong id="watch-count">0</strong><small>存在限制项，暂不归入可操作</small></article>
+        <article class="panel kpi warn"><span>重点观察</span><strong id="actionable-count">0</strong><small>回踩企稳，操作分类为可买入</small></article>
+        <article class="panel kpi good"><span>普通观察</span><strong id="watch-count">0</strong><small>缩量回踩，操作分类为观察</small></article>
         <article class="panel kpi bad"><span>结构或规则失效</span><strong id="fail-count">9</strong><small>不得沿用旧观察价位</small></article>
       </div>
     </section>
@@ -190,7 +190,7 @@
         <h2>操作分类</h2>
         <div class="filters" role="group" aria-label="操作分类筛选">
           <button class="filter active" data-filter="all">全部</button>
-          <button class="filter" data-filter="可操作">可操作</button>
+          <button class="filter" data-filter="可买入">可买入</button>
           <button class="filter" data-filter="观察">观察</button>
           <button class="filter" data-filter="失效">失效</button>
         </div>
@@ -227,7 +227,7 @@
   <script>
     const state = { data: null, klines: null, klinePromise: null, chart: null, filter: 'all', query: '' };
     const fmt = (value, suffix = '') => Number.isFinite(value) ? `${value.toFixed(2)}${suffix}` : '—';
-    const eventClass = (event) => ['新进入观察', '升级为可操作'].includes(event) ? 'new' : ['继续等待回踩', '继续观察'].includes(event) ? 'wait' : event === '结构或规则失效' ? 'fail' : '';
+    const eventClass = (event) => event === '普通观察' ? 'new' : event === '重点观察' ? 'wait' : event === '结构或规则失效' ? 'fail' : '';
 
     function render() {
       const data = state.data;
@@ -381,7 +381,7 @@
       const candidates = (state.data?.events || [])
         .filter(item => item.current_status && item.current_status !== '剔除' && item.event !== '结构或规则失效')
         .sort((a, b) => {
-          const executable = item => item.current_status === '可操作' ? 2 : item.current_status === '观察' ? 1 : 0;
+          const executable = item => item.current_status === '可买入' ? 2 : item.current_status === '观察' ? 1 : 0;
           return executable(b) - executable(a)
             || (b.similarity_score || 0) - (a.similarity_score || 0)
             || (b.activity_score || 0) - (a.activity_score || 0);
@@ -413,7 +413,7 @@
         `<span class="tag market">${item.market_status || '市场待核实'}</span>`,
         `<span class="tag">${item.risk_status || '公告待核实'}</span>`
       ].join('');
-      document.querySelector('#focus-note').textContent = `${item.operation_reasons || item.reasons || '当前规则未发现限制项'}。可操作只表示通过当前规则，不等于买点，不追高。`;
+      document.querySelector('#focus-note').textContent = `${item.operation_reasons || item.reasons || '当前规则未发现限制项'}。可买入只是筛选分类，不等于买入指令，不追高。`;
     }
 
     async function load() {
