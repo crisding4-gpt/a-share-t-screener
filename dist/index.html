@@ -163,7 +163,7 @@
 
     <section class="top-grid" aria-label="关键状态">
       <article class="panel focus">
-        <div class="eyebrow" id="focus-eyebrow">重点观察</div>
+        <div class="eyebrow" id="focus-eyebrow">推荐买入</div>
         <div class="focus-head">
           <div><h2><span id="focus-name">载入中</span> <span class="ticker" id="focus-code">—</span></h2></div>
           <div class="price"><strong id="focus-price">—</strong><span id="focus-change">较前日 —</span></div>
@@ -381,23 +381,22 @@
 
     function renderFocus() {
       const candidates = (state.data?.events || [])
-        .filter(item => item.current_status && item.current_status !== '剔除' && item.event !== '停止观察')
+        .filter(item => item.current_status === '推荐买入')
         .sort((a, b) => {
-          const priority = item => ({ '重点观察': 3, '继续观察': 2, '普通观察': 1 }[item.event] || 0);
-          return priority(b) - priority(a)
-            || (b.similarity_score || 0) - (a.similarity_score || 0)
+          return (b.similarity_score || 0) - (a.similarity_score || 0)
             || (b.activity_score || 0) - (a.activity_score || 0);
         });
       const item = candidates[0];
       if (!item) {
-        document.querySelector('#focus-name').textContent = '暂无可跟踪候选';
+        document.querySelector('#focus-eyebrow').textContent = '推荐买入';
+        document.querySelector('#focus-name').textContent = '暂无推荐买入分类股票';
         document.querySelector('#focus-code').textContent = '';
         document.querySelector('#focus-tags').innerHTML = '<span class="tag">等待下一交易日筛选</span>';
-        document.querySelector('#focus-note').textContent = '当前没有仍在观察状态的候选，不沿用已失效股票的旧价位。';
+        document.querySelector('#focus-note').textContent = '当前没有操作分类为推荐买入的股票。';
         return;
       }
       document.querySelector('#focus-name').textContent = item.name || '未命名';
-      document.querySelector('#focus-eyebrow').textContent = item.event || '股池观察';
+      document.querySelector('#focus-eyebrow').textContent = '推荐买入';
       document.querySelector('#focus-code').textContent = item.code || '—';
       document.querySelector('#focus-price').textContent = fmt(item.current_price);
       const focusChange = document.querySelector('#focus-change');
