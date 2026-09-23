@@ -174,7 +174,7 @@
           <div class="metric"><span>可交易活跃度</span><strong id="focus-activity">—</strong></div>
           <div class="metric"><span>120日回撤</span><strong id="focus-drawdown">—</strong></div>
           <div class="metric"><span>距20日高点</span><strong id="focus-days">—</strong></div>
-          <div class="metric"><span>成熟条件</span><strong id="focus-maturity" style="color:var(--amber)">—</strong></div>
+          <div class="metric" id="focus-maturity-wrap"><span>成熟条件</span><strong id="focus-maturity" style="color:var(--amber)">—</strong></div>
         </div>
         <p class="watch-note" id="focus-note">观察池正在载入。进入观察池不等于买点。</p>
       </article>
@@ -392,9 +392,12 @@
         document.querySelector('#focus-name').textContent = '暂无推荐买入分类股票';
         document.querySelector('#focus-code').textContent = '';
         document.querySelector('#focus-tags').innerHTML = '<span class="tag">等待下一交易日筛选</span>';
-        document.querySelector('#focus-note').textContent = '当前没有操作分类为推荐买入的股票。';
+        document.querySelector('#focus-maturity-wrap').hidden = true;
+        document.querySelector('#focus-note').hidden = true;
         return;
       }
+      document.querySelector('#focus-maturity-wrap').hidden = false;
+      document.querySelector('#focus-note').hidden = false;
       document.querySelector('#focus-name').textContent = item.name || '未命名';
       document.querySelector('#focus-eyebrow').textContent = '推荐买入';
       document.querySelector('#focus-code').textContent = item.code || '—';
