@@ -223,7 +223,7 @@
         <div class="chart-head">
           <div class="chart-info">
             <div class="chart-title"><strong id="chart-kind">日K</strong><span id="chart-source">点击股票后载入</span><span class="chart-change" id="chart-change">涨跌幅 —</span></div>
-            <div class="chart-legend" aria-label="均线图例"><span><i style="background:#f4d35e"></i>MA5</span><span><i style="background:#4ea8de"></i>MA10</span><span><i style="background:#c77dff"></i>MA20</span></div>
+            <div class="chart-legend" id="chart-ma-legend" aria-label="均线图例"><span><i style="background:#f4d35e"></i>MA5</span><span><i style="background:#4ea8de"></i>MA10</span><span><i style="background:#c77dff"></i>MA20</span></div>
           </div>
           <div class="periods" role="group" aria-label="K线周期">
             <button class="period" data-mode="intraday">分时</button><button class="period active" data-mode="day">日K</button><button class="period" data-mode="week">周K</button><button class="period" data-mode="month">月K</button><button class="period" data-mode="year">年K</button>
@@ -338,7 +338,7 @@
       const priceBottom = volumeTop - 14;
       const plotWidth = width - pad.left - pad.right;
       const rows = chart.rows;
-      const maPeriods = [
+      const maPeriods = chart.mode === 'intraday' ? [] : [
         { days: 5, color: '#f4d35e' },
         { days: 10, color: '#4ea8de' },
         { days: 20, color: '#c77dff' }
@@ -454,6 +454,7 @@
         state.chart = { item, mode, allRows, startIndex, rows: allRows.slice(startIndex), previousClose: previousDailyClose };
         const labels = { intraday: '分时', day: '日K', week: '周K', month: '月K', year: '年K' };
         document.querySelector('#chart-kind').textContent = labels[mode] || '日K';
+        document.querySelector('#chart-ma-legend').hidden = mode === 'intraday';
         document.querySelector('#chart-source').textContent = mode === 'intraday'
           ? `腾讯五分钟行情 · ${bundle.asof || '—'}`
           : `腾讯前复权${labels[mode] || '日K'} · 截至${bundle.asof || '—'}`;
@@ -568,12 +569,12 @@
       const change = previousClose ? (Number(row[2]) / previousClose - 1) * 100 : null;
       const changeText = Number.isFinite(change) ? `${change > 0 ? '+' : ''}${change.toFixed(2)}%` : '—';
       const changeColor = change > 0 ? 'var(--red)' : change < 0 ? 'var(--green)' : 'var(--muted)';
-      const maText = [5, 10, 20].map(days => {
+      const maText = state.chart.mode === 'intraday' ? '' : [5, 10, 20].map(days => {
         const value = geometry.movingAverages?.[days]?.[index];
         return `MA${days} ${Number.isFinite(value) ? value.toFixed(2) : '—'}`;
       }).join('  ');
       const timeLabel = state.chart.mode === 'intraday' ? chartLabel(row[0], 'intraday') : row[0];
-      tip.innerHTML = `${timeLabel}　开${Number(row[1]).toFixed(2)}　收${Number(row[2]).toFixed(2)}　高${Number(row[3]).toFixed(2)}　低${Number(row[4]).toFixed(2)}　<span style="color:${changeColor}">涨跌幅 ${changeText}</span><br>量${Math.round(Number(row[5])).toLocaleString()}手　${maText}`;
+      tip.innerHTML = `${timeLabel}　开${Number(row[1]).toFixed(2)}　收${Number(row[2]).toFixed(2)}　高${Number(row[3]).toFixed(2)}　低${Number(row[4]).toFixed(2)}　<span style="color:${changeColor}">涨跌幅 ${changeText}</span><br>量${Math.round(Number(row[5])).toLocaleString()}手${maText ? `　${maText}` : ''}`;
       tip.style.display = 'block';
       tip.style.left = `${Math.max(8, Math.min(event.offsetX + 12, canvas.clientWidth - tip.offsetWidth - 8))}px`;
       tip.style.top = '8px';
