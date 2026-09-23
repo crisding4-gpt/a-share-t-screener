@@ -118,9 +118,15 @@
     .dialog-reason { margin: 15px 0 0; color: #c6d4e4; }
     .chart-block { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
     .chart-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
-    .chart-title { display: flex; align-items: baseline; gap: 9px; }
+    .chart-info { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 18px; }
+    .chart-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 9px; }
     .chart-title strong { font-size: .92rem; }
     .chart-title span { color: var(--muted); font-size: .72rem; }
+    .chart-title .chart-change.up { color: var(--red); }
+    .chart-title .chart-change.down { color: var(--green); }
+    .chart-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 11px; color: var(--muted); font-size: .7rem; }
+    .chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .chart-legend i { width: 13px; height: 2px; border-radius: 2px; display: inline-block; }
     .periods { display: flex; gap: 6px; }
     .period { cursor: pointer; padding: 4px 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel-2); color: var(--muted); font-size: .72rem; }
     .period.active, .period:hover { color: var(--text); border-color: #4775a1; background: #14273c; }
@@ -215,7 +221,10 @@
       <div class="detail-grid" id="detail-grid"></div><p class="dialog-reason" id="dialog-reason"></p>
       <section class="chart-block" aria-label="日K线图">
         <div class="chart-head">
-          <div class="chart-title"><strong>前复权日K</strong><span id="chart-source">点击股票后载入</span></div>
+          <div class="chart-info">
+            <div class="chart-title"><strong>前复权日K</strong><span id="chart-source">点击股票后载入</span><span class="chart-change" id="chart-change">涨跌幅 —</span></div>
+            <div class="chart-legend" aria-label="均线图例"><span><i style="background:#f4d35e"></i>MA5</span><span><i style="background:#4ea8de"></i>MA10</span><span><i style="background:#c77dff"></i>MA20</span></div>
+          </div>
           <div class="periods" role="group" aria-label="K线周期">
             <button class="period" data-period="30">30日</button><button class="period active" data-period="60">60日</button><button class="period" data-period="120">120日</button>
           </div>
@@ -288,8 +297,23 @@
       const priceBottom = volumeTop - 14;
       const plotWidth = width - pad.left - pad.right;
       const rows = chart.rows;
-      const high = Math.max(...rows.map(row => Number(row[3])));
-      const low = Math.min(...rows.map(row => Number(row[4])));
+      const maPeriods = [
+        { days: 5, color: '#f4d35e' },
+        { days: 10, color: '#4ea8de' },
+        { days: 20, color: '#c77dff' }
+      ];
+      const movingAverages = Object.fromEntries(maPeriods.map(({ days }) => {
+        const values = rows.map((_, visibleIndex) => {
+          const absoluteIndex = chart.startIndex + visibleIndex;
+          if (absoluteIndex + 1 < days) return null;
+          const windowRows = chart.allRows.slice(absoluteIndex - days + 1, absoluteIndex + 1);
+          return windowRows.reduce((sum, row) => sum + Number(row[2]), 0) / days;
+        });
+        return [days, values];
+      }));
+      const maValues = Object.values(movingAverages).flat().filter(Number.isFinite);
+      const high = Math.max(...rows.map(row => Number(row[3])), ...maValues);
+      const low = Math.min(...rows.map(row => Number(row[4])), ...maValues);
       const priceRange = Math.max(high - low, high * .01, .01);
       const maxVolume = Math.max(...rows.map(row => Number(row[5])), 1);
       const step = plotWidth / rows.length;
@@ -324,6 +348,22 @@
         ctx.fillRect(x - candleWidth / 2, height - pad.bottom - volumeHeight, candleWidth, volumeHeight);
         ctx.globalAlpha = 1;
       });
+      maPeriods.forEach(({ days, color }) => {
+        const values = movingAverages[days];
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.35;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        let started = false;
+        values.forEach((value, index) => {
+          if (!Number.isFinite(value)) return;
+          const x = xAt(index), y = yAt(value);
+          if (!started) { ctx.moveTo(x, y); started = true; }
+          else ctx.lineTo(x, y);
+        });
+        if (started) ctx.stroke();
+      });
       ctx.fillStyle = '#91a5bd'; ctx.textBaseline = 'bottom';
       [[0, 'left'], [Math.floor((rows.length - 1) / 2), 'center'], [rows.length - 1, 'right']].forEach(([index, align]) => {
         ctx.textAlign = align;
@@ -335,7 +375,7 @@
         ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, height - pad.bottom); ctx.stroke();
         ctx.setLineDash([]);
       }
-      canvas._chartGeometry = { left: pad.left, step, count: rows.length };
+      canvas._chartGeometry = { left: pad.left, step, count: rows.length, movingAverages };
     }
 
     async function renderKline(item, period = 60) {
@@ -347,8 +387,16 @@
         const bundle = await loadKlines();
         const record = bundle.symbols?.[item.symbol];
         if (!record?.rows?.length) throw new Error('该股票暂时没有可用K线');
-        state.chart = { item, period, rows: record.rows.slice(-period) };
+        const startIndex = Math.max(0, record.rows.length - period);
+        state.chart = { item, period, allRows: record.rows, startIndex, rows: record.rows.slice(startIndex) };
         document.querySelector('#chart-source').textContent = `${bundle.source || '前复权日K'} · 截至${bundle.asof || '—'}`;
+        const latestIndex = record.rows.length - 1;
+        const latestClose = Number(record.rows[latestIndex]?.[2]);
+        const previousClose = Number(record.rows[latestIndex - 1]?.[2]);
+        const latestChange = previousClose ? (latestClose / previousClose - 1) * 100 : null;
+        const chartChange = document.querySelector('#chart-change');
+        chartChange.textContent = `涨跌幅 ${Number.isFinite(latestChange) ? `${latestChange > 0 ? '+' : ''}${latestChange.toFixed(2)}%` : '—'}`;
+        chartChange.className = `chart-change ${latestChange > 0 ? 'up' : latestChange < 0 ? 'down' : ''}`;
         message.style.display = 'none';
         drawKline();
       } catch (error) {
@@ -449,7 +497,16 @@
       const row = state.chart.rows[index];
       drawKline(index);
       const tip = document.querySelector('#chart-tooltip');
-      tip.textContent = `${row[0]}  开${Number(row[1]).toFixed(2)}  收${Number(row[2]).toFixed(2)}  高${Number(row[3]).toFixed(2)}  低${Number(row[4]).toFixed(2)}  量${Math.round(Number(row[5])).toLocaleString()}手`;
+      const absoluteIndex = state.chart.startIndex + index;
+      const previousClose = Number(state.chart.allRows[absoluteIndex - 1]?.[2]);
+      const change = previousClose ? (Number(row[2]) / previousClose - 1) * 100 : null;
+      const changeText = Number.isFinite(change) ? `${change > 0 ? '+' : ''}${change.toFixed(2)}%` : '—';
+      const changeColor = change > 0 ? 'var(--red)' : change < 0 ? 'var(--green)' : 'var(--muted)';
+      const maText = [5, 10, 20].map(days => {
+        const value = geometry.movingAverages?.[days]?.[index];
+        return `MA${days} ${Number.isFinite(value) ? value.toFixed(2) : '—'}`;
+      }).join('  ');
+      tip.innerHTML = `${row[0]}　开${Number(row[1]).toFixed(2)}　收${Number(row[2]).toFixed(2)}　高${Number(row[3]).toFixed(2)}　低${Number(row[4]).toFixed(2)}　<span style="color:${changeColor}">涨跌幅 ${changeText}</span><br>量${Math.round(Number(row[5])).toLocaleString()}手　${maText}`;
       tip.style.display = 'block';
       tip.style.left = `${Math.max(8, Math.min(event.offsetX + 12, canvas.clientWidth - tip.offsetWidth - 8))}px`;
       tip.style.top = '8px';
