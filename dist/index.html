@@ -222,11 +222,11 @@
       <section class="chart-block" aria-label="日K线图">
         <div class="chart-head">
           <div class="chart-info">
-            <div class="chart-title"><strong>前复权日K</strong><span id="chart-source">点击股票后载入</span><span class="chart-change" id="chart-change">涨跌幅 —</span></div>
+            <div class="chart-title"><strong id="chart-kind">日K</strong><span id="chart-source">点击股票后载入</span><span class="chart-change" id="chart-change">涨跌幅 —</span></div>
             <div class="chart-legend" aria-label="均线图例"><span><i style="background:#f4d35e"></i>MA5</span><span><i style="background:#4ea8de"></i>MA10</span><span><i style="background:#c77dff"></i>MA20</span></div>
           </div>
           <div class="periods" role="group" aria-label="K线周期">
-            <button class="period" data-period="30">30日</button><button class="period active" data-period="60">60日</button><button class="period" data-period="120">120日</button>
+            <button class="period" data-mode="intraday">分时</button><button class="period active" data-mode="day">日K</button><button class="period" data-mode="week">周K</button><button class="period" data-mode="month">月K</button><button class="period" data-mode="year">年K</button>
           </div>
         </div>
         <div class="chart-frame"><canvas id="kline-canvas"></canvas><div class="chart-message" id="chart-message">K线载入中</div><div class="chart-tooltip" id="chart-tooltip"></div></div>
@@ -278,6 +278,47 @@
         }).then(data => (state.klines = data));
       }
       return state.klinePromise;
+    }
+
+    function aggregateRows(rows, mode) {
+      if (mode === 'day') return rows.slice();
+      const groups = new Map();
+      rows.forEach(row => {
+        const date = String(row[0]);
+        let key;
+        if (mode === 'week') {
+          const value = new Date(`${date}T00:00:00Z`);
+          const day = value.getUTCDay() || 7;
+          value.setUTCDate(value.getUTCDate() - day + 1);
+          key = value.toISOString().slice(0, 10);
+        } else if (mode === 'month') key = date.slice(0, 7);
+        else key = date.slice(0, 4);
+        const existing = groups.get(key);
+        if (!existing) {
+          groups.set(key, [date, Number(row[1]), Number(row[2]), Number(row[3]), Number(row[4]), Number(row[5])]);
+        } else {
+          existing[0] = date;
+          existing[2] = Number(row[2]);
+          existing[3] = Math.max(existing[3], Number(row[3]));
+          existing[4] = Math.min(existing[4], Number(row[4]));
+          existing[5] += Number(row[5]);
+        }
+      });
+      return [...groups.values()];
+    }
+
+    function chartLabel(value, mode) {
+      const text = String(value || '');
+      if (mode === 'intraday') return text.length >= 12 ? `${text.slice(8, 10)}:${text.slice(10, 12)}` : text;
+      if (mode === 'year') return text.slice(0, 4);
+      if (mode === 'month') return text.slice(0, 7);
+      return text.slice(5);
+    }
+
+    function previousCloseAt(chart, visibleIndex) {
+      if (chart.mode === 'intraday') return chart.previousClose;
+      const absoluteIndex = chart.startIndex + visibleIndex;
+      return Number(chart.allRows[absoluteIndex - 1]?.[2]);
     }
 
     function drawKline(highlight = null) {
@@ -336,18 +377,35 @@
       }
       rows.forEach((row, index) => {
         const open = Number(row[1]), close = Number(row[2]), barHigh = Number(row[3]), barLow = Number(row[4]), volume = Number(row[5]);
-        const up = close >= open;
+        const up = chart.mode === 'intraday' ? close >= chart.previousClose : close >= open;
         const color = up ? '#ff6b73' : '#38d39f';
         const x = xAt(index), yOpen = yAt(open), yClose = yAt(close);
-        ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(x, yAt(barHigh)); ctx.lineTo(x, yAt(barLow)); ctx.stroke();
-        const bodyTop = Math.min(yOpen, yClose), bodyHeight = Math.max(1, Math.abs(yClose - yOpen));
-        ctx.fillRect(x - candleWidth / 2, bodyTop, candleWidth, bodyHeight);
+        if (chart.mode !== 'intraday') {
+          ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(x, yAt(barHigh)); ctx.lineTo(x, yAt(barLow)); ctx.stroke();
+          const bodyTop = Math.min(yOpen, yClose), bodyHeight = Math.max(1, Math.abs(yClose - yOpen));
+          ctx.fillRect(x - candleWidth / 2, bodyTop, candleWidth, bodyHeight);
+        }
         const volumeHeight = (height - pad.bottom - volumeTop) * volume / maxVolume;
-        ctx.globalAlpha = .55;
+        ctx.fillStyle = color; ctx.globalAlpha = .55;
         ctx.fillRect(x - candleWidth / 2, height - pad.bottom - volumeHeight, candleWidth, volumeHeight);
         ctx.globalAlpha = 1;
       });
+      if (chart.mode === 'intraday') {
+        if (Number.isFinite(chart.previousClose) && chart.previousClose >= low && chart.previousClose <= high) {
+          const y = yAt(chart.previousClose);
+          ctx.strokeStyle = 'rgba(145,165,189,.55)'; ctx.setLineDash([4, 4]);
+          ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(width - pad.right, y); ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        ctx.strokeStyle = '#edf5ff'; ctx.lineWidth = 1.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+        ctx.beginPath();
+        rows.forEach((row, index) => {
+          const x = xAt(index), y = yAt(Number(row[2]));
+          if (index === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      }
       maPeriods.forEach(({ days, color }) => {
         const values = movingAverages[days];
         ctx.strokeStyle = color;
@@ -367,7 +425,7 @@
       ctx.fillStyle = '#91a5bd'; ctx.textBaseline = 'bottom';
       [[0, 'left'], [Math.floor((rows.length - 1) / 2), 'center'], [rows.length - 1, 'right']].forEach(([index, align]) => {
         ctx.textAlign = align;
-        ctx.fillText(String(rows[index][0]).slice(5), xAt(index), height - 4);
+        ctx.fillText(chartLabel(rows[index][0], chart.mode), xAt(index), height - 4);
       });
       if (Number.isInteger(highlight) && rows[highlight]) {
         const x = xAt(highlight);
@@ -378,21 +436,30 @@
       canvas._chartGeometry = { left: pad.left, step, count: rows.length, movingAverages };
     }
 
-    async function renderKline(item, period = 60) {
+    async function renderKline(item, mode = 'day') {
       const message = document.querySelector('#chart-message');
       const tooltip = document.querySelector('#chart-tooltip');
       message.style.display = 'grid'; message.textContent = 'K线载入中'; tooltip.style.display = 'none';
-      document.querySelectorAll('.period').forEach(button => button.classList.toggle('active', Number(button.dataset.period) === period));
+      document.querySelectorAll('.period').forEach(button => button.classList.toggle('active', button.dataset.mode === mode));
       try {
         const bundle = await loadKlines();
         const record = bundle.symbols?.[item.symbol];
         if (!record?.rows?.length) throw new Error('该股票暂时没有可用K线');
-        const startIndex = Math.max(0, record.rows.length - period);
-        state.chart = { item, period, allRows: record.rows, startIndex, rows: record.rows.slice(startIndex) };
-        document.querySelector('#chart-source').textContent = `${bundle.source || '前复权日K'} · 截至${bundle.asof || '—'}`;
-        const latestIndex = record.rows.length - 1;
-        const latestClose = Number(record.rows[latestIndex]?.[2]);
-        const previousClose = Number(record.rows[latestIndex - 1]?.[2]);
+        const dailyRows = record.rows;
+        const allRows = mode === 'intraday' ? (record.intraday_rows || []) : aggregateRows(dailyRows, mode);
+        if (!allRows.length) throw new Error(mode === 'intraday' ? '该股票暂时没有当日分时数据' : '该周期暂时没有可用K线');
+        const visibleLimit = mode === 'intraday' ? 320 : 120;
+        const startIndex = Math.max(0, allRows.length - visibleLimit);
+        const previousDailyClose = Number(dailyRows[dailyRows.length - 2]?.[2]);
+        state.chart = { item, mode, allRows, startIndex, rows: allRows.slice(startIndex), previousClose: previousDailyClose };
+        const labels = { intraday: '分时', day: '日K', week: '周K', month: '月K', year: '年K' };
+        document.querySelector('#chart-kind').textContent = labels[mode] || '日K';
+        document.querySelector('#chart-source').textContent = mode === 'intraday'
+          ? `腾讯五分钟行情 · ${bundle.asof || '—'}`
+          : `腾讯前复权${labels[mode] || '日K'} · 截至${bundle.asof || '—'}`;
+        const latestIndex = allRows.length - 1;
+        const latestClose = Number(allRows[latestIndex]?.[2]);
+        const previousClose = mode === 'intraday' ? previousDailyClose : Number(allRows[latestIndex - 1]?.[2]);
         const latestChange = previousClose ? (latestClose / previousClose - 1) * 100 : null;
         const chartChange = document.querySelector('#chart-change');
         chartChange.textContent = `涨跌幅 ${Number.isFinite(latestChange) ? `${latestChange > 0 ? '+' : ''}${latestChange.toFixed(2)}%` : '—'}`;
@@ -422,7 +489,7 @@
       document.querySelector('#detail-grid').innerHTML = details.map(([label, value]) => `<div class="detail"><span>${label}</span><strong>${value}</strong></div>`).join('');
       document.querySelector('#dialog-reason').textContent = item.operation_reasons || item.reasons || '当前没有限制原因。';
       document.querySelector('#detail-dialog').showModal();
-      renderKline(item, 60);
+      renderKline(item, 'day');
     }
 
     function renderFocus() {
@@ -488,7 +555,7 @@
     document.querySelector('#search').addEventListener('input', event => { state.query = event.target.value.trim().toLowerCase(); render(); });
     document.querySelector('#close-dialog').addEventListener('click', () => document.querySelector('#detail-dialog').close());
     document.querySelectorAll('.period').forEach(button => button.addEventListener('click', () => {
-      if (state.chart?.item) renderKline(state.chart.item, Number(button.dataset.period));
+      if (state.chart?.item) renderKline(state.chart.item, button.dataset.mode);
     }));
     document.querySelector('#kline-canvas').addEventListener('mousemove', event => {
       const canvas = event.currentTarget, geometry = canvas._chartGeometry;
@@ -497,8 +564,7 @@
       const row = state.chart.rows[index];
       drawKline(index);
       const tip = document.querySelector('#chart-tooltip');
-      const absoluteIndex = state.chart.startIndex + index;
-      const previousClose = Number(state.chart.allRows[absoluteIndex - 1]?.[2]);
+      const previousClose = previousCloseAt(state.chart, index);
       const change = previousClose ? (Number(row[2]) / previousClose - 1) * 100 : null;
       const changeText = Number.isFinite(change) ? `${change > 0 ? '+' : ''}${change.toFixed(2)}%` : '—';
       const changeColor = change > 0 ? 'var(--red)' : change < 0 ? 'var(--green)' : 'var(--muted)';
@@ -506,7 +572,8 @@
         const value = geometry.movingAverages?.[days]?.[index];
         return `MA${days} ${Number.isFinite(value) ? value.toFixed(2) : '—'}`;
       }).join('  ');
-      tip.innerHTML = `${row[0]}　开${Number(row[1]).toFixed(2)}　收${Number(row[2]).toFixed(2)}　高${Number(row[3]).toFixed(2)}　低${Number(row[4]).toFixed(2)}　<span style="color:${changeColor}">涨跌幅 ${changeText}</span><br>量${Math.round(Number(row[5])).toLocaleString()}手　${maText}`;
+      const timeLabel = state.chart.mode === 'intraday' ? chartLabel(row[0], 'intraday') : row[0];
+      tip.innerHTML = `${timeLabel}　开${Number(row[1]).toFixed(2)}　收${Number(row[2]).toFixed(2)}　高${Number(row[3]).toFixed(2)}　低${Number(row[4]).toFixed(2)}　<span style="color:${changeColor}">涨跌幅 ${changeText}</span><br>量${Math.round(Number(row[5])).toLocaleString()}手　${maText}`;
       tip.style.display = 'block';
       tip.style.left = `${Math.max(8, Math.min(event.offsetX + 12, canvas.clientWidth - tip.offsetWidth - 8))}px`;
       tip.style.top = '8px';
