@@ -174,9 +174,7 @@
           <div class="metric"><span>可交易活跃度</span><strong id="focus-activity">—</strong></div>
           <div class="metric"><span>120日回撤</span><strong id="focus-drawdown">—</strong></div>
           <div class="metric"><span>距20日高点</span><strong id="focus-days">—</strong></div>
-          <div class="metric" id="focus-maturity-wrap"><span>成熟条件</span><strong id="focus-maturity" style="color:var(--amber)">—</strong></div>
         </div>
-        <p class="watch-note" id="focus-note">观察池正在载入。进入观察池不等于买点。</p>
       </article>
 
       <div class="kpis">
@@ -392,12 +390,8 @@
         document.querySelector('#focus-name').textContent = '暂无推荐买入分类股票';
         document.querySelector('#focus-code').textContent = '';
         document.querySelector('#focus-tags').innerHTML = '<span class="tag">等待下一交易日筛选</span>';
-        document.querySelector('#focus-maturity-wrap').hidden = true;
-        document.querySelector('#focus-note').hidden = true;
         return;
       }
-      document.querySelector('#focus-maturity-wrap').hidden = false;
-      document.querySelector('#focus-note').hidden = false;
       document.querySelector('#focus-name').textContent = item.name || '未命名';
       document.querySelector('#focus-eyebrow').textContent = '推荐买入';
       document.querySelector('#focus-code').textContent = item.code || '—';
@@ -409,16 +403,12 @@
       document.querySelector('#focus-activity').textContent = item.activity_score ?? '—';
       document.querySelector('#focus-drawdown').textContent = fmt(item.drawdown120_pct, '%');
       document.querySelector('#focus-days').textContent = `${item.days_since_high20 ?? '—'}日`;
-      const maturity = document.querySelector('#focus-maturity');
-      maturity.textContent = item.maturity_ready ? '已满足' : '未满足';
-      maturity.style.color = item.maturity_ready ? 'var(--green)' : 'var(--amber)';
       document.querySelector('#focus-tags').innerHTML = [
         `<span class="tag">${item.current_status || '状态待核实'}</span>`,
         `<span class="tag">${item.technical_state || item.stage || '技术状态待核实'}</span>`,
         `<span class="tag market">${item.market_status || '市场待核实'}</span>`,
         `<span class="tag">${item.risk_status || '公告待核实'}</span>`
       ].join('');
-      document.querySelector('#focus-note').textContent = `${item.operation_reasons || item.reasons || '当前规则未发现限制项'}。操作分类只是选股方法标签，不构成投资建议，不追高。`;
     }
 
     async function load() {
