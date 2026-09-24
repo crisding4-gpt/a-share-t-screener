@@ -62,7 +62,6 @@
     .price { text-align: right; }
     .price strong { display: block; font-size: 2rem; line-height: 1; }
     .price span { color: var(--red); font-size: .85rem; }
-    .status-line { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 21px; }
     .tag { border-radius: 999px; padding: 6px 10px; background: rgba(247,199,107,.11); border: 1px solid rgba(247,199,107,.35); color: var(--amber); font-size: .8rem; }
     .tag.market { background: rgba(255,127,134,.08); border-color: rgba(255,127,134,.3); color: var(--red); }
     .metrics { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--line); padding-top: 18px; gap: 12px; }
@@ -174,7 +173,6 @@
           <div><h2><span id="focus-name">载入中</span> <span class="ticker" id="focus-code">—</span></h2></div>
           <div class="price"><strong id="focus-price">—</strong><span id="focus-change">较前日 —</span></div>
         </div>
-        <div class="status-line" id="focus-tags"></div>
         <div class="metrics">
           <div class="metric"><span>指标相似度</span><strong id="focus-score">—</strong></div>
           <div class="metric"><span>可交易活跃度</span><strong id="focus-activity">—</strong></div>
@@ -505,11 +503,8 @@
         document.querySelector('#focus-eyebrow').textContent = '推荐买入';
         document.querySelector('#focus-name').textContent = '暂无推荐';
         document.querySelector('#focus-code').textContent = '';
-        document.querySelector('#focus-tags').innerHTML = '';
-        document.querySelector('#focus-tags').hidden = true;
         return;
       }
-      document.querySelector('#focus-tags').hidden = false;
       document.querySelector('#focus-name').textContent = item.name || '未命名';
       document.querySelector('#focus-eyebrow').textContent = '推荐买入';
       document.querySelector('#focus-code').textContent = item.code || '—';
@@ -521,12 +516,6 @@
       document.querySelector('#focus-activity').textContent = item.activity_score ?? '—';
       document.querySelector('#focus-drawdown').textContent = fmt(item.drawdown120_pct, '%');
       document.querySelector('#focus-days').textContent = `${item.days_since_high20 ?? '—'}日`;
-      document.querySelector('#focus-tags').innerHTML = [
-        `<span class="tag">${item.current_status || '状态待核实'}</span>`,
-        `<span class="tag">${item.technical_state || item.stage || '技术状态待核实'}</span>`,
-        `<span class="tag market">${item.market_status || '市场待核实'}</span>`,
-        `<span class="tag">${item.risk_status || '公告待核实'}</span>`
-      ].join('');
     }
 
     async function load() {
