@@ -503,11 +503,13 @@
       const item = candidates[0];
       if (!item) {
         document.querySelector('#focus-eyebrow').textContent = '推荐买入';
-        document.querySelector('#focus-name').textContent = '暂无推荐买入分类股票';
+        document.querySelector('#focus-name').textContent = '暂无推荐';
         document.querySelector('#focus-code').textContent = '';
-        document.querySelector('#focus-tags').innerHTML = '<span class="tag">等待下一交易日筛选</span>';
+        document.querySelector('#focus-tags').innerHTML = '';
+        document.querySelector('#focus-tags').hidden = true;
         return;
       }
+      document.querySelector('#focus-tags').hidden = false;
       document.querySelector('#focus-name').textContent = item.name || '未命名';
       document.querySelector('#focus-eyebrow').textContent = '推荐买入';
       document.querySelector('#focus-code').textContent = item.code || '—';
