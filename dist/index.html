@@ -270,10 +270,26 @@
     async function loadKlines() {
       if (state.klines) return state.klines;
       if (!state.klinePromise) {
-        state.klinePromise = fetch('./klines.json', { cache: 'no-store' }).then(response => {
-          if (!response.ok) throw new Error('K线数据文件载入失败');
-          return response.json();
-        }).then(data => (state.klines = data));
+        const version = encodeURIComponent(state.data?.asof || Date.now());
+        state.klinePromise = (async () => {
+          let lastError;
+          for (let attempt = 0; attempt < 2; attempt += 1) {
+            try {
+              const response = await fetch(`./klines.json?v=${version}&retry=${attempt}`, { cache: 'no-store' });
+              if (!response.ok) throw new Error(`K线数据文件载入失败（${response.status}）`);
+              const data = await response.json();
+              if (data.asof !== state.data?.asof) throw new Error('K线数据日与股池不一致');
+              state.klines = data;
+              return data;
+            } catch (error) {
+              lastError = error;
+            }
+          }
+          throw lastError || new Error('K线数据文件载入失败');
+        })().catch(error => {
+          state.klinePromise = null;
+          throw error;
+        });
       }
       return state.klinePromise;
     }
@@ -531,6 +547,7 @@
         document.querySelector('#stop-count').textContent = summary['停止观察'] || 0;
         renderFocus();
         render();
+        loadKlines().catch(() => {});
       } catch (error) {
         document.querySelector('#asof').textContent = '数据不可用';
         document.querySelector('#empty').textContent = error.message;
