@@ -1,9 +1,9 @@
 {
   "version": "1.0.0",
   "status": "validated",
-  "asof": "2026-09-30",
-  "previous_asof": "2026-09-29",
-  "generated_at": "2026-10-08T06:58:35+08:00",
+  "asof": "2026-10-08",
+  "previous_asof": "2026-09-30",
+  "generated_at": "2026-10-08T20:53:36+08:00",
   "checks": {
     "official_trading_calendar": true,
     "tencent_close_date": true,
