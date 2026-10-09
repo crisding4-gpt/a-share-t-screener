@@ -89,6 +89,9 @@
     td { padding: 13px 14px; border-bottom: 1px solid rgba(32,52,76,.7); vertical-align: middle; font-size: .86rem; }
     tbody tr { cursor: pointer; transition: background .15s ease; }
     tbody tr:hover { background: rgba(118,183,255,.055); }
+    tbody tr.fundamental-risk td { background: rgba(255,127,134,.075); }
+    tbody tr.fundamental-risk:hover td { background: rgba(255,127,134,.12); }
+    tbody tr.fundamental-risk td:nth-child(2) strong { color: var(--red); }
     tbody tr:last-child td { border-bottom: 0; }
     .event { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; font-weight: 600; }
     .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); }
@@ -101,6 +104,7 @@
     .event.wait { color: #fde2a7; }
     .event.continue { color: var(--text); }
     .symbol { color: var(--muted); font-size: .74rem; display: block; }
+    .fundamental-badge { display: inline-flex; margin-top: 5px; padding: 2px 7px; border: 1px solid rgba(255,127,134,.48); border-radius: 999px; color: #ffabb0; background: rgba(255,127,134,.11); font-size: .68rem; font-weight: 700; }
     .score { font-variant-numeric: tabular-nums; font-weight: 700; }
     .reason { max-width: 330px; color: #b6c6d8; }
     .empty { display: none; padding: 40px; text-align: center; color: var(--muted); }
@@ -236,6 +240,13 @@
     const state = { data: null, klines: null, klinePromise: null, chart: null, filter: 'all', query: '' };
     const fmt = (value, suffix = '') => Number.isFinite(value) ? `${value.toFixed(2)}${suffix}` : '—';
     const eventClass = (event) => event === '普通观察' ? 'new' : event === '重点观察' ? 'wait' : event === '继续观察' ? 'continue' : event === '停止观察' ? 'fail' : '';
+    const fundamentalRiskReasons = item => {
+      if (Array.isArray(item.fundamental_risk_reasons)) return item.fundamental_risk_reasons.filter(Boolean);
+      return String(item.operation_reasons || '').split('；')
+        .filter(reason => reason.startsWith('基本面风险：'))
+        .map(reason => reason.replace(/^基本面风险：/, ''));
+    };
+    const hasFundamentalRisk = item => item.fundamental_risk === true || fundamentalRiskReasons(item).length > 0;
 
     function render() {
       const data = state.data;
@@ -246,9 +257,9 @@
       });
       const body = document.querySelector('#rows');
       body.innerHTML = events.map((item, index) => `
-        <tr data-index="${data.events.indexOf(item)}" tabindex="0">
+        <tr class="${hasFundamentalRisk(item) ? 'fundamental-risk' : ''}" data-index="${data.events.indexOf(item)}" tabindex="0">
           <td><span class="event ${eventClass(item.event)}"><span class="dot"></span>${item.event}</span></td>
-          <td><strong>${item.name}</strong><span class="symbol">${item.code}</span></td>
+          <td><strong>${item.name}</strong><span class="symbol">${item.code}</span>${hasFundamentalRisk(item) ? '<span class="fundamental-badge">基本面风险</span>' : ''}</td>
           <td>${item.current_status}</td>
           <td>${item.technical_state || item.stage || '—'}</td>
           <td>${fmt(item.current_price)}</td>
@@ -489,6 +500,7 @@
 
     function showDetail(item) {
       document.querySelector('#dialog-title').textContent = `${item.name} · ${item.code}`;
+      const fundamentalReasons = fundamentalRiskReasons(item);
       const details = [
         ['试盘等级', item.test_grade || '—'], ['试盘事件', item.test_event || '—'],
         ['试盘量比', fmt(item.test_volume_ratio, '倍')], ['试盘换手率', fmt(item.test_turnover_pct, '%')],
@@ -499,9 +511,14 @@
         ['企稳期均量/试盘量', fmt(Number.isFinite(item.stabilization_volume_to_test) ? item.stabilization_volume_to_test * 100 : null, '%')],
         ['现价', fmt(item.current_price)], ['日变化', fmt(item.price_change_pct, '%')],
         ['指标相似度', item.similarity_score ?? '—'], ['可交易活跃度', item.activity_score ?? '—'], ['120日回撤', fmt(item.drawdown120_pct, '%')],
-        ['距20日高点', `${item.days_since_high20 ?? '—'}日`], ['公告风险', item.risk_status || '—'], ['市场环境', item.market_status || '—']
+        ['距20日高点', `${item.days_since_high20 ?? '—'}日`],
+        ['基本面风险', fundamentalReasons.length ? fundamentalReasons.join('；') : '未发现明确问题'],
+        ['公告风险', item.risk_status || '—'], ['市场环境', item.market_status || '—']
       ];
       document.querySelector('#detail-grid').innerHTML = details.map(([label, value]) => `<div class="detail"><span>${label}</span><strong>${value}</strong></div>`).join('');
+      const fundamentalDetail = [...document.querySelectorAll('#detail-grid .detail')].find(node => node.querySelector('span')?.textContent === '基本面风险');
+      if (fundamentalReasons.length && fundamentalDetail) fundamentalDetail.style.border = '1px solid rgba(255,127,134,.55)';
+      if (fundamentalReasons.length && fundamentalDetail) fundamentalDetail.querySelector('strong').style.color = 'var(--red)';
       document.querySelector('#dialog-reason').textContent = item.operation_reasons || item.reasons || '当前没有限制原因。';
       document.querySelector('#detail-dialog').showModal();
       renderKline(item, 'day');
