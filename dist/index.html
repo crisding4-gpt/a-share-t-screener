@@ -251,7 +251,9 @@
     function render() {
       const data = state.data;
       const events = (data?.events || []).filter(item => {
-        const filterMatch = state.filter === 'all' || item.event === state.filter;
+        const filterMatch = state.filter === 'all'
+          ? item.event !== '停止观察'
+          : item.event === state.filter;
         const haystack = `${item.code} ${item.name}`.toLowerCase();
         return filterMatch && haystack.includes(state.query);
       });
