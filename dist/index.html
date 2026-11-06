@@ -209,7 +209,7 @@
 
     <section class="table-wrap" aria-label="观察池事件表">
       <table>
-        <thead><tr><th>事件</th><th>股票</th><th>操作分类</th><th>技术状态</th><th>现价</th><th>日变化</th><th>相似度</th><th>活跃度</th><th>120日回撤</th><th>距高点</th><th>限制原因</th></tr></thead>
+        <thead><tr><th>事件</th><th>股票</th><th>操作分类</th><th>技术状态</th><th>入池至卖出</th><th>现价</th><th>日变化</th><th>相似度</th><th>活跃度</th><th>120日回撤</th><th>距高点</th><th>限制原因</th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
       <div class="empty" id="empty">没有符合当前筛选条件的记录</div>
@@ -247,6 +247,11 @@
         .map(reason => reason.replace(/^基本面风险：/, ''));
     };
     const hasFundamentalRisk = item => item.fundamental_risk === true || fundamentalRiskReasons(item).length > 0;
+    const poolTiming = item => {
+      if (item.technical_state !== '已突破' || !item.breakout_sell_date) return '—';
+      const days = Number.isFinite(item.pool_duration_trading_days) ? `${item.pool_duration_trading_days}个交易日` : '—';
+      return `${days}<span class="symbol">${item.pool_entry_date || '—'} → ${item.breakout_sell_date}</span>`;
+    };
 
     function render() {
       const data = state.data;
@@ -264,6 +269,7 @@
           <td><strong>${item.name}</strong><span class="symbol">${item.code}</span>${hasFundamentalRisk(item) ? '<span class="fundamental-badge">基本面风险</span>' : ''}</td>
           <td>${item.current_status}</td>
           <td>${item.technical_state || item.stage || '—'}</td>
+          <td>${poolTiming(item)}</td>
           <td>${fmt(item.current_price)}</td>
           <td style="color:${item.price_change_pct > 0 ? 'var(--red)' : item.price_change_pct < 0 ? 'var(--green)' : 'var(--muted)'}">${fmt(item.price_change_pct, '%')}</td>
           <td class="score">${item.similarity_score ?? '—'}</td>
@@ -509,6 +515,8 @@
         ['炸板确认', item.broken_board_confirmed ? '已确认' : item.broken_board_source_status === 'ok' ? '未进入炸板池' : '数据待核实'],
         ['事件', item.event], ['原分类', item.previous_status], ['操作分类', item.current_status],
         ['技术状态', item.technical_state || item.stage || '—'],
+        ['入池日期', item.pool_entry_date || '—'], ['突破卖出日', item.breakout_sell_date || '—'],
+        ['入池至卖出', Number.isFinite(item.pool_duration_trading_days) ? `${item.pool_duration_trading_days}个交易日` : '—'],
         ['企稳期涨幅', fmt(item.stabilization_return_pct, '%')],
         ['企稳期均量/试盘量', fmt(Number.isFinite(item.stabilization_volume_to_test) ? item.stabilization_volume_to_test * 100 : null, '%')],
         ['现价', fmt(item.current_price)], ['日变化', fmt(item.price_change_pct, '%')],
