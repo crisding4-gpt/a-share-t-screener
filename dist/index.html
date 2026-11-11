@@ -51,31 +51,6 @@
     .brand p { margin: 3px 0 0; max-width: 780px; color: var(--muted); font-size: .78rem; line-height: 1.45; }
     .asof { padding: 8px 12px; border: 1px solid var(--line); border-radius: 9px; color: var(--muted); background: rgba(13,25,40,.72); font-size: .85rem; }
     .asof strong { color: var(--text); font-weight: 600; }
-    .top-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 18px; }
-    .panel { background: linear-gradient(145deg, rgba(17,31,49,.96), rgba(10,21,35,.96)); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); }
-    .focus { padding: 24px; position: relative; overflow: hidden; }
-    .focus::after { content: ""; position: absolute; width: 250px; height: 250px; border-radius: 50%; right: -110px; top: -135px; background: rgba(110,231,183,.08); }
-    .eyebrow { color: var(--green); text-transform: uppercase; font-size: .76rem; letter-spacing: .14em; font-weight: 700; }
-    .focus-head { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin: 8px 0 20px; }
-    .focus h2 { margin: 0; font-size: clamp(1.65rem, 4vw, 2.55rem); letter-spacing: -.03em; }
-    .ticker { color: var(--muted); font-size: .9rem; margin-left: 8px; font-weight: 500; }
-    .price { text-align: right; }
-    .price strong { display: block; font-size: 2rem; line-height: 1; }
-    .price span { color: var(--red); font-size: .85rem; }
-    .tag { border-radius: 999px; padding: 6px 10px; background: rgba(247,199,107,.11); border: 1px solid rgba(247,199,107,.35); color: var(--amber); font-size: .8rem; }
-    .tag.market { background: rgba(255,127,134,.08); border-color: rgba(255,127,134,.3); color: var(--red); }
-    .metrics { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--line); padding-top: 18px; gap: 12px; }
-    .metric span { display: block; color: var(--muted); font-size: .76rem; }
-    .metric strong { display: block; margin-top: 4px; font-size: 1.12rem; }
-    .watch-note { margin: 19px 0 0; padding: 12px 14px; border-left: 3px solid var(--amber); background: rgba(247,199,107,.07); color: #d9e4f2; font-size: .86rem; }
-    .kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .kpi { padding: 18px; min-height: 118px; display: flex; flex-direction: column; justify-content: space-between; }
-    .kpi span { color: var(--muted); font-size: .8rem; }
-    .kpi strong { font-size: 2rem; line-height: 1; }
-    .kpi small { color: var(--muted); font-size: .72rem; }
-    .kpi.good strong { color: var(--green); }
-    .kpi.warn strong { color: var(--amber); }
-    .kpi.bad strong { color: var(--red); }
     .toolbar { margin: 22px 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
     .toolbar h2 { margin: 0; font-size: 1rem; }
     .filters { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -138,7 +113,6 @@
     .chart-message { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: .82rem; pointer-events: none; }
     .chart-tooltip { position: absolute; display: none; z-index: 2; max-width: calc(100% - 16px); padding: 7px 9px; border: 1px solid #315171; border-radius: 7px; background: rgba(7,16,28,.94); color: #dce9f7; font-size: .72rem; line-height: 1.5; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,.28); white-space: nowrap; }
     @media (max-width: 920px) {
-      .top-grid { grid-template-columns: 1fr; }
       .toolbar { align-items: stretch; flex-direction: column; }
       .search { width: 100%; }
     }
@@ -147,10 +121,6 @@
       header { align-items: flex-start; flex-direction: column; }
       .brand p { display: block; max-width: none; font-size: .72rem; }
       .asof { font-size: .74rem; }
-      .focus { padding: 19px; }
-      .focus-head { align-items: flex-start; }
-      .metrics { grid-template-columns: repeat(2, 1fr); }
-      .kpi { min-height: 104px; padding: 15px; }
       .detail-grid { grid-template-columns: 1fr; }
       .chart-head { align-items: flex-start; flex-direction: column; }
       .chart-frame { min-height: 280px; }
@@ -169,29 +139,6 @@
       </div>
       <div class="asof">数据日 <strong id="asof">载入中</strong></div>
     </header>
-
-    <section class="top-grid" aria-label="关键状态">
-      <article class="panel focus">
-        <div class="eyebrow" id="focus-eyebrow">推荐买入</div>
-        <div class="focus-head">
-          <div><h2><span id="focus-name">载入中</span> <span class="ticker" id="focus-code">—</span></h2></div>
-          <div class="price"><strong id="focus-price">—</strong><span id="focus-change">较前日 —</span></div>
-        </div>
-        <div class="metrics">
-          <div class="metric"><span>指标相似度</span><strong id="focus-score">—</strong></div>
-          <div class="metric"><span>可交易活跃度</span><strong id="focus-activity">—</strong></div>
-          <div class="metric"><span>120日回撤</span><strong id="focus-drawdown">—</strong></div>
-          <div class="metric"><span>距20日高点</span><strong id="focus-days">—</strong></div>
-        </div>
-      </article>
-
-      <div class="kpis">
-        <article class="panel kpi good"><span>普通观察</span><strong id="normal-count">0</strong><small>观察 · 缩量回踩</small></article>
-        <article class="panel kpi warn"><span>重点观察</span><strong id="key-count">0</strong><small>推荐买入或风险限制 · 回踩企稳</small></article>
-        <article class="panel kpi"><span>继续观察</span><strong id="continue-count">0</strong><small>谨慎买入 · 待突破</small></article>
-        <article class="panel kpi bad"><span>停止观察</span><strong id="stop-count">0</strong><small>破位保留 · 符合条件后移出</small></article>
-      </div>
-    </section>
 
     <div class="toolbar">
       <div>
@@ -534,45 +481,12 @@
       renderKline(item, 'day');
     }
 
-    function renderFocus() {
-      const candidates = (state.data?.events || [])
-        .filter(item => item.current_status === '推荐买入')
-        .sort((a, b) => {
-          return (b.similarity_score || 0) - (a.similarity_score || 0)
-            || (b.activity_score || 0) - (a.activity_score || 0);
-        });
-      const item = candidates[0];
-      if (!item) {
-        document.querySelector('#focus-eyebrow').textContent = '推荐买入';
-        document.querySelector('#focus-name').textContent = '暂无推荐';
-        document.querySelector('#focus-code').textContent = '';
-        return;
-      }
-      document.querySelector('#focus-name').textContent = item.name || '未命名';
-      document.querySelector('#focus-eyebrow').textContent = '推荐买入';
-      document.querySelector('#focus-code').textContent = item.code || '—';
-      document.querySelector('#focus-price').textContent = fmt(item.current_price);
-      const focusChange = document.querySelector('#focus-change');
-      focusChange.textContent = `较前日 ${fmt(item.price_change_pct, '%')}`;
-      focusChange.style.color = item.price_change_pct > 0 ? 'var(--red)' : item.price_change_pct < 0 ? 'var(--green)' : 'var(--muted)';
-      document.querySelector('#focus-score').textContent = item.similarity_score ?? '—';
-      document.querySelector('#focus-activity').textContent = item.activity_score ?? '—';
-      document.querySelector('#focus-drawdown').textContent = fmt(item.drawdown120_pct, '%');
-      document.querySelector('#focus-days').textContent = `${item.days_since_high20 ?? '—'}日`;
-    }
-
     async function load() {
       try {
         const response = await fetch('./tracker.json', { cache: 'no-store' });
         if (!response.ok) throw new Error('数据文件载入失败');
         state.data = await response.json();
-        const summary = state.data.summary || {};
         document.querySelector('#asof').textContent = state.data.asof || '—';
-        document.querySelector('#normal-count').textContent = summary['普通观察'] || 0;
-        document.querySelector('#key-count').textContent = summary['重点观察'] || 0;
-        document.querySelector('#continue-count').textContent = summary['继续观察'] || 0;
-        document.querySelector('#stop-count').textContent = summary['停止观察'] || 0;
-        renderFocus();
         render();
         loadKlines().catch(() => {});
       } catch (error) {
